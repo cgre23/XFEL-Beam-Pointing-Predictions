@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>705</width>
+    <height>440</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::CustomContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>DAQ Tool</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>DAQ</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>DAQ</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QPushButton" name="sequence_button">
+            <property name="text">
+             <string>Start DAQ</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="textBrowser">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOn</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Settings</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Beam pointing measurement configuration</string>
+         </property>
+         <widget class="QComboBox" name="SASEoptions">
+          <property name="geometry">
+           <rect>
+            <x>170</x>
+            <y>50</y>
+            <width>251</width>
+            <height>32</height>
+           </rect>
+          </property>
+          <item>
+           <property name="text">
+            <string>SASE1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE1 &amp; SASE2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE1 &amp; SASE3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE2 &amp; SASE3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SASE1  &amp; SASE2 &amp; SASE 3</string>
+           </property>
+          </item>
+         </widget>
+         <widget class="QLabel" name="label_4">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>50</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Run Measurement for:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_5">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>90</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SA1 k-value</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_6">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>110</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SA2 k-value</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_7">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>130</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SA3 k-value</string>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="sa1_k">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>90</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="maximum">
+           <number>999</number>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="sa2_k">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>110</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="maximum">
+           <number>999</number>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="sa3_k">
+          <property name="geometry">
+           <rect>
+            <x>180</x>
+            <y>130</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="maximum">
+           <number>999</number>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_8">
+          <property name="geometry">
+           <rect>
+            <x>250</x>
+            <y>130</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>e-4</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_9">
+          <property name="geometry">
+           <rect>
+            <x>250</x>
+            <y>110</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>e-4</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_10">
+          <property name="geometry">
+           <rect>
+            <x>250</x>
+            <y>90</y>
+            <width>151</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>e-4</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_11">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>200</y>
+            <width>251</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>No. of seconds per measurement:</string>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="measurement_time">
+          <property name="geometry">
+           <rect>
+            <x>260</x>
+            <y>200</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_12">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>230</y>
+            <width>251</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>No. of iterations:</string>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="iterations">
+          <property name="geometry">
+           <rect>
+            <x>260</x>
+            <y>230</y>
+            <width>61</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="fetch_button">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>310</y>
+            <width>271</width>
+            <height>32</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Fetch from DOOCS</string>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="write_button">
+          <property name="geometry">
+           <rect>
+            <x>330</x>
+            <y>310</y>
+            <width>271</width>
+            <height>32</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Write to DOOCS</string>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_13">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>270</y>
+            <width>251</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Estimated measurement time (mins):</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="total_meas_time">
+          <property name="geometry">
+           <rect>
+            <x>270</x>
+            <y>270</y>
+            <width>60</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="log">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>340</y>
+            <width>571</width>
+            <height>24</height>
+           </rect>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>1000</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>browseSlot()</slot>
+ </slots>
+</ui>
