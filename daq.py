@@ -38,7 +38,7 @@ class DAQApp(QWidget):
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
-        self.q = queue.Queue()
+        
 
     def toggleSequenceButton(self):
         # if button is checked
@@ -185,7 +185,7 @@ class DAQApp(QWidget):
         self.ui.log.setText('Wrote data to DOOCS')
 
     def update_estimated_time(self):
-        time = np.round((self.ui.measurement_time.value()/60)*self.ui.iterations.value(), 2)
+        time = np.round((self.ui.measurement_time.value()/600)*self.ui.iterations.value(), 2)
         self.ui.total_meas_time.setText(str(time))
 
     def makedirs(self, dest):
