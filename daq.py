@@ -32,13 +32,13 @@ class DAQApp(QWidget):
         self.logstring = []
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
         self.ui.sequence_button.setCheckable(False)
-        self.ui.sequence_button.setEnabled(False)
+        self.ui.sequence_button.setEnabled(True)
         #self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
         self.ui.fetch_button.clicked.connect(self.fetch_doocs_data)
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
-        
+
 
     def toggleSequenceButton(self):
         # if button is checked
@@ -120,7 +120,7 @@ class DAQApp(QWidget):
             try:
                 v = pydoocs.read(addr)['data']
             except Exception as err:
-                print(err)
+                print(addr, err)
                 v = 23
         else:
             v = 23
@@ -132,7 +132,7 @@ class DAQApp(QWidget):
                 x = pydoocs.write(addr, value)
                 v = 1
             except Exception as err:
-                print(err)
+                print(addr, err)
                 v = 0
         else:
             v = 0
@@ -146,6 +146,8 @@ class DAQApp(QWidget):
             undulator_name = 'SASE2'
         elif undulators == 3:
             undulator_name = 'SASE3'
+        elif undulators == 12:
+            undulator_name = 'SASE1 & SASE2'
         elif undulators == 13:
             undulator_name = 'SASE1 & SASE3'
         elif undulators == 23:
@@ -167,12 +169,12 @@ class DAQApp(QWidget):
         iterations = int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/DAQ/N_ITERATIONS'))
         self.ui.iterations.setValue(iterations)
         self.ui.log.setText('Fetched data from DOOCS')
-        
-        
-       
+
+
+
 
     def write_doocs_data(self):
-        undulators = int ( ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) ) )
+        undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
         und_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS', undulators)
         k_range_sa1 = self.ui.sa1_k.value()/10000
         sa1_k_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/K_RANGE_SA1', k_range_sa1)
