@@ -20,7 +20,9 @@ Change the measurement time, undulators measured and k-ranges. The tool can star
 
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```
+python daq.py
+```
 
 
 ## Authors and acknowledgment
