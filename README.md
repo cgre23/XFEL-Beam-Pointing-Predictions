@@ -10,6 +10,7 @@ This is a user-interface for the Taskomat sequence recording electron diagnostic
 
 ```
 cd xfeloper/user/chgrech/xfel-daq-ui
+git pull origin main
 git add.
 git commit -m 'Message here what changes you are committing'
 git push -uf origin main
