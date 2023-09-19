@@ -33,7 +33,7 @@ class DAQApp(QWidget):
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
         self.ui.sequence_button.setCheckable(False)
         self.ui.sequence_button.setEnabled(True)
-        #self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
+        self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
         self.ui.fetch_button.clicked.connect(self.fetch_doocs_data)
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
