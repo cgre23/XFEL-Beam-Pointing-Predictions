@@ -228,7 +228,7 @@ class DAQApp(QWidget):
         """
         #screenshot = self.get_screenshot(widget)
         res = send_to_desy_elog(
-            author="", title="Beam Pointing DAQ Measurement", severity="INFO", text=text, elog="xfellog")
+            author="xfeloper", title="Beam Pointing DAQ Measurement", severity="INFO", text=text, elog="xfellog")
         if res == True:
             success_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Finished scan! Logbook entry submitted. <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.ui.textBrowser.append(success_log_html)
