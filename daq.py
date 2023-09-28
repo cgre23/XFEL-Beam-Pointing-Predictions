@@ -31,7 +31,7 @@ class DAQApp(QWidget):
         self.ui.setupUi(self)
         self.logstring = []
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
-        self.ui.sequence_button.setCheckable(False)
+        self.ui.sequence_button.setCheckable(True)
         self.ui.sequence_button.setEnabled(True)
         self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
         self.ui.fetch_button.clicked.connect(self.fetch_doocs_data)
@@ -49,12 +49,15 @@ class DAQApp(QWidget):
             self.ui.sequence_button.setPalette(self.palette)
             self.ui.sequence_button.setText("Force Stop DAQ")
 
-            #t = threading.Thread(target=self.start_sequence)
-            #t.daemon = True
-            #t.start()
-            self.start_sequence()
-            self.logbooktext = ''.join(self.logstring)
-            #self.logbook_entry(widget=self.tab, text=self.logbooktext)
+            t = threading.Thread(target=self.start_sequence)
+            t.daemon = True
+            t.start()
+            #self.start_sequence()
+            #self.logbooktext = ''.join(self.logstring)
+            #self.logbook_entry(self.logbooktext)
+            #self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor('white'))
+            #self.ui.sequence_button.setPalette(self.palette)
+            #self.ui.sequence_button.setText("Start DAQ")
 
         # if it is unchecked
         else: # Force Stop
@@ -72,7 +75,7 @@ class DAQApp(QWidget):
                 self.ui.textBrowser.append(stop_log_html)
                 # Write to logbook
                 self.logbooktext = ''.join(self.logstring)
-                #self.logbook_entry(widget=self.tab, text=self.logbooktext)
+                self.logbook_entry(widget=self.tab, text=self.logbooktext)
             except:
                 print('Not able to stop the sequence.\n')
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Not able to stop the sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
@@ -92,7 +95,7 @@ class DAQApp(QWidget):
                 if log not in self.ui.textBrowser.toPlainText():
                     self.ui.textBrowser.append(pydoocs.read(self.sa1_sequence_prefix+'/LOG_HTML.LAST')['data'])
                     self.logstring.append(pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']+'\n')
-                    time.sleep(0.01)
+                    time.sleep(0.001)
                  #pass
             self.update_taskomat_logs()
             self.ui.sequence_button.setChecked(False)
@@ -100,13 +103,15 @@ class DAQApp(QWidget):
             self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor('white'))
             self.ui.sequence_button.setPalette(self.palette)
             self.ui.sequence_button.setText("Start DAQ")
+            self.logbooktext = ''.join(self.logstring)
+            self.logbook_entry(self.logbooktext)
         except:
             print('Not able to start Taskomat sequence.')
             start_log = datetime.now().isoformat(' ', 'seconds')+': Not able to start Taskomat sequence.\n'
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Not able to start Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
-            self.ui.sequence_button.setChecked(False)
+            #self.ui.sequence_button.setChecked(False)
             self.ui.sequence_button.setText("Start DAQ")
 
 
@@ -224,7 +229,7 @@ class DAQApp(QWidget):
         """
         #screenshot = self.get_screenshot(widget)
         res = send_to_desy_elog(
-            author="", title="Beam Pointing DAQ Measurement", severity="INFO", text=text, elog="xfellog")
+            author="xfeloper", title="Beam Pointing DAQ Measurement", severity="INFO", text=text, elog="xfellog")
         if res == True:
             success_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Finished scan! Logbook entry submitted. <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.ui.textBrowser.append(success_log_html)
