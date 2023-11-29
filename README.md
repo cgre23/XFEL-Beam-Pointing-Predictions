@@ -1,7 +1,6 @@
 # XFEL-DAQ-UI
 
 
-
 ## Getting started
 
 This is a user-interface for the Taskomat sequence recording electron diagnostics using DOOCS DAQ and photon diagnostics using Karabo DAQ.
