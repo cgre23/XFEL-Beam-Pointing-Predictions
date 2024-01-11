@@ -1,8 +1,6 @@
 import os
 import sys
 import getopt
-import numpy as np
-from matplotlib import pyplot as plt
 import torch
 import json
 import torch.nn as nn
@@ -15,6 +13,9 @@ import warnings
 import logging
 from datetime import datetime
 import yaml
+import numpy as np
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 # Set up logging and suppress warnings
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
@@ -134,6 +135,18 @@ def reset_weights(m):
         if hasattr(layer, 'reset_parameters'):
             layer.reset_parameters()
 
+def read_folder(data_folder):
+   files = os.listdir(data_folder)
+   df = []
+   for f in files:
+     data_file = data_folder + "/" + f
+     logging.info('Reading data from:     %s', data_file)
+     data_df = pd.read_parquet(data_file).reset_index(drop=True)
+     data_df = data_df.astype(str).replace({"\[":"", "\]":""}, regex=True).astype(float)
+     df.append(data_df)
+   df_full = pd.concat(df, ignore_index=True)
+   return df_full
+
 # Function to parse input parameters
 def input_params(argv):
     SASE = None
@@ -195,14 +208,9 @@ if __name__ == "__main__":
     
     # Record the start time for training
     start_time = datetime.now()  
-    logging.info('Training a NN model for %s data from %s', SASE_no, source+run+'_merged_'+SASE_no+'_processed.parquet.gzip')
+    logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run)
         
-    # Load hyperparameters and other data from JSON file
-    #filename = properties + run + '/prop_' + SASE_no + '_gridsearch.json'
-    #filename = properties + run + f'/prop_{SASE_no}_gridsearch.json'
-    #data = json.load(open(filename))
     data = {}
-    # Hyperparameters
     
     torch.backends.cudnn.enabled = False
     torch.manual_seed(random_seed)
@@ -210,47 +218,24 @@ if __name__ == "__main__":
     log_interval = 1000
   
     # Read the data and prepare features and targets
-    df = pd.read_parquet(source + run + '_merged_' + SASE_no + '_processed.parquet.gzip').reset_index(drop=True)
+    df = read_folder(source+run)
     
-    with open(properties + "channels_" + SASE_no + "_dxmaf.yml", 'r') as file:
+    with open(properties + "channels_" + SASE_no + ".yml", 'r') as file:
         channel_list = yaml.load(file, Loader=yaml.Loader)
         
     #print(channel_list)
     
-    filename_pt = properties+run+'/prop_'+SASE_no+'_post_training_'+label+'.json'
+    filename_pt = properties+run+'/metadata_post_training_'+label+'.json'
     # Some data preprocessing steps...
     # Remove columns with a zero standard deviation. Otherwise an issue could be caused with normalization
     df=df.loc[:, df.std() > 0]
+
     # Define the features and targets from the channel list, pre-normalization
     features_pre = list(set(channel_list['inputs']).intersection(df.columns.tolist()))
     targets_pre = list(set(channel_list['outputs']).intersection(df.columns.tolist()))
     #logging.info('Training with %d percent of the data', label*100)
     inputs_outputs = features_pre + targets_pre
-
     
-    #test = [8996, 11096]
-    #train = [9096, 8096, 8596, 10096, 11896, 14400]
-    #test = [12000.6]
-    #train = [11000.6, 11500.6, 12400.6]
-    #test = [7893.88]
-    #train = [8893.883, 9893.88]
-    #train = [15000, 14800, 14400, 14200, 14000]
-    #test = [14600]
-    #train = [10000, 9700, 9300, 9000]
-    #test = [9700]
-    #train = [15000, 14800, 14600, 14400, 14200, 14000, 10000, 9700, 9300, 9000]
-    #test = [9700]
-    
-    #traindf = pd.DataFrame()
-    #validdf = pd.DataFrame()
-    #for ph_en in train:
-    #    traindf_ =df.loc[df['/XFEL.UTIL/HIGH_LEVEL_STATUS/PHOTON_ENERGY.'+SASE_no+'/PHOTON_ENERGY_INPUT_1/Value'] == ph_en]
-    #    train_df, valid_df = np.split(traindf_[inputs_outputs], [int(.8*len(traindf_))])
-    #    traindf = traindf.append(train_df)
-    #    validdf = validdf.append(valid_df)
-         
-    #testdf = df[df['/XFEL.UTIL/HIGH_LEVEL_STATUS/PHOTON_ENERGY.'+SASE_no+'/PHOTON_ENERGY_INPUT_1/Value'] == test[0]]
-    #print('LENGTH of testdf', len(testdf))
     # Split the data into training, validation, and testing sets
     traindf, validdf, testdf = np.split(df[inputs_outputs], [int(.75*len(df)), int(.85*len(df))])
     traindf = traindf.astype(float).dropna()
@@ -270,7 +255,7 @@ if __name__ == "__main__":
     normvalid_df = (validdf - (traindf.min() - traindf.std())) / ((traindf.max() + traindf.std()) - (traindf.min() - traindf.std()))
     norm_df = norm_df.astype(float).dropna().dropna(axis=1, how='all')
     normvalid_df = normvalid_df.astype(float).dropna().dropna(axis=1, how='all')
-    print(len(normvalid_df))
+    logging.info('Number of training samples: %d', len(norm_df))
     
     # Set the device for training (GPU if available, otherwise CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -317,12 +302,12 @@ if __name__ == "__main__":
     trigger_times = 0
 
     # Training loop
-    for t in range(1000):
+    for t in range(100):
         epoch = t + 1
         train_loss, mean_train_r2, model, OPTIMIZER = train_model(model, epoch, train_loader, OPTIMIZER)
         current_loss = validation_model(model, valid_loader)
 
-        if current_loss > last_loss and epoch > 50:
+        if current_loss > last_loss and epoch > 30:
             trigger_times += 1
             logging.info('Trigger Times: %d', trigger_times)
 
@@ -389,7 +374,7 @@ if __name__ == "__main__":
         json.dump(data, open(filename_pt, 'w'), default=str)
         logging.info('JSON property file saved to: %s', filename_pt)
     except:
-        Fatal('Trouble saving dataframe to file.')
+        Fatal('Trouble saving model metadata to file.')
         
         
  
