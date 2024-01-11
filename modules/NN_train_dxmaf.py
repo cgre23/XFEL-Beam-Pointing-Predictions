@@ -15,8 +15,6 @@ from datetime import datetime
 import yaml
 import numpy as np
 
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-
 # Set up logging and suppress warnings
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 warnings.filterwarnings("ignore")
@@ -29,7 +27,7 @@ n = 1
 
 # Define the neural network class
 class NN(nn.Module):
-    def __init__(self, no_hidden_nodes, no_hidden_layers, INPUTS):
+    def __init__(self, no_hidden_nodes, no_hidden_layers, INPUTS, OUTPUTS):
         super(NN, self).__init__()
         
         # Define the layers of the neural network
@@ -39,7 +37,7 @@ class NN(nn.Module):
         for i in range(no_hidden_layers):
             layers.append(nn.Linear(no_hidden_nodes, no_hidden_nodes))
             layers.append(nn.ReLU())
-        layers.append(nn.Linear(no_hidden_nodes, 8))
+        layers.append(nn.Linear(no_hidden_nodes, OUTPUTS))
         
         # Create the sequential model with the defined layers
         self.net = nn.Sequential(*layers)
@@ -139,11 +137,12 @@ def read_folder(data_folder):
    files = os.listdir(data_folder)
    df = []
    for f in files:
-     data_file = data_folder + "/" + f
-     logging.info('Reading data from:     %s', data_file)
-     data_df = pd.read_parquet(data_file).reset_index(drop=True)
-     data_df = data_df.astype(str).replace({"\[":"", "\]":""}, regex=True).astype(float)
-     df.append(data_df)
+    if f.endswith('parquet.gzip'):
+        data_file = data_folder + "/" + f
+        logging.info('Reading data from:     %s', data_file)
+        data_df = pd.read_parquet(data_file).reset_index(drop=True)
+        data_df = data_df.astype(str).replace({"\[":"", "\]":""}, regex=True).astype(float)
+        df.append(data_df)
    df_full = pd.concat(df, ignore_index=True)
    return df_full
 
@@ -270,8 +269,8 @@ if __name__ == "__main__":
     #logging.info('Training with %d percent of the data', label*100)
     inputs_outputs = features + targets
     INPUTS = len(features)
+    OUTPUTS = len(targets)
     data['no_inputs'] = INPUTS
-    
     data['features'] = features
     data['targets'] = targets
     data['inputs_outputs'] = inputs_outputs
@@ -285,10 +284,10 @@ if __name__ == "__main__":
     logging.info('Training NN: Learning rate: %s Hidden layers: %s Hidden nodes: %s Batch size: %s', LEARNING_RATE, HIDDEN_LAYERS, HIDDEN_NODES, BATCH_SIZE)
 
     # Create the neural network model
-    model = NN(HIDDEN_NODES, HIDDEN_LAYERS, INPUTS)
+    model = NN(HIDDEN_NODES, HIDDEN_LAYERS, INPUTS, OUTPUTS)
     model = model.to(device)
     OPTIMIZER = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
-    #OPTIMIZER = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
     # Create DataLoader for training and validation
     train_dataset = MyDataset(norm_df)
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
@@ -359,7 +358,7 @@ if __name__ == "__main__":
     data['training_R2'] = mean_train_r2
     data['validation_R2'] = mean_valid_r2
     data['batch_size'] = BATCH_SIZE
-    data['learning_rate'] = BATCH_SIZE
+    data['learning_rate'] = LEARNING_RATE
     data['hidden_layers'] = HIDDEN_LAYERS
     data['hidden_nodes'] = HIDDEN_NODES
     data['label'] = label
