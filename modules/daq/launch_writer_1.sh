@@ -8,6 +8,7 @@ export PYTHONPATH=$PYTHONPATH_OLD:/home/doocsadm/bm/python/DAQ/classes:/export/d
 #source activate xfel
 . /opt/anaconda/etc/profile.d/conda.sh
 conda init bash
+
 cd modules/daq
 conda deactivate
 conda activate dxmaf
