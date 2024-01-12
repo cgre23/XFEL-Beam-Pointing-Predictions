@@ -19,7 +19,7 @@ import gui.resources_rc
 
 import subprocess
 import time
-do_doocs = 0
+do_doocs = 1
 if do_doocs == 1:
     import pydoocs
 
