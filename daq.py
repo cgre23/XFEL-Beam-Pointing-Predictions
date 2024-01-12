@@ -16,12 +16,12 @@ import re
 from datetime import datetime, timedelta
 from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
-
 import subprocess
 import time
-do_doocs = 1
+do_doocs = 0
 if do_doocs == 1:
     import pydoocs
+import yaml
 
 # Define status icons (available in the resource file built with "pyrcc5"
 ICON_RED_LED = ":/icons/led-red-on.png"
@@ -247,6 +247,7 @@ class DAQApp(QWidget):
 
 
     def write_doocs_data(self):
+        self.set_config()
         undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
         und_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS', undulators)
         k_range_sa1 = self.ui.sa1_k.value()/10000
@@ -258,6 +259,19 @@ class DAQApp(QWidget):
         meas_time_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/N_MEASUREMENTS', self.ui.measurement_time.value())
         iterations_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/N_ITERATIONS', self.ui.iterations.value())
         self.ui.log.setText('Wrote data to DOOCS')
+
+    def set_config(self):
+        config_file = "modules/daq/docs/datalog_writer_SA1 copy.conf"
+        duration = (self.ui.measurement_time.value()/10)*self.ui.iterations.value()
+        with open(config_file, 'r') as file:
+            cur_yaml = yaml.safe_load(file)
+            cur_yaml.update({'duration': str(timedelta(seconds=duration))})
+            print(cur_yaml)
+
+        with open(config_file,'w') as yamlfile:
+            yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
+
+
 
     def update_estimated_time(self):
         time = np.round((self.ui.measurement_time.value()/600)*self.ui.iterations.value(), 2)
