@@ -15,12 +15,18 @@ import shutil
 import re
 from datetime import datetime, timedelta
 from modules.spectr_gui import send_to_desy_elog
+import gui.resources_rc
 
 import subprocess
 import time
-do_doocs = 1
+do_doocs = 0
 if do_doocs == 1:
     import pydoocs
+
+# Define status icons (available in the resource file built with "pyrcc5"
+ICON_RED_LED = ":/icons/led-red-on.png"
+ICON_GREEN_LED = ":/icons/green-led-on.png"
+ICON_BLUE_LED = ":/icons/blue-led-on.png"
 
 class DAQApp(QWidget):
     def __init__(self, parent=None):
@@ -38,7 +44,7 @@ class DAQApp(QWidget):
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
-
+        self.check_crls()
 
     def toggleSequenceButton(self):
         # if button is checked
@@ -174,9 +180,62 @@ class DAQApp(QWidget):
         self.ui.measurement_time.setValue(meas_time)
         iterations = int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/DAQ/N_ITERATIONS'))
         self.ui.iterations.setValue(iterations)
+        self.check_crls()
         self.ui.log.setText('Fetched data from DOOCS')
 
+    def check_crls(self):
+        # SASE1 CRL indicators
+        sa1_crl1 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT1.STATE'))
+        sa1_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT2.STATE'))
+        sa1_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT3.STATE'))
+        sa1_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT4.STATE'))
+        sa1_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT5.STATE'))
+        sa1_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT6.STATE'))
+        sa1_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT7.STATE'))
+        sa1_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT8.STATE'))
+        sa1_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT9.STATE'))
+        sa1_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT10.STATE'))
+        self.change_crl_icon(sa1_crl1, self.ui.labelStatusFan1_1)
+        self.change_crl_icon(sa1_crl2, self.ui.labelStatusFan1_2)
+        self.change_crl_icon(sa1_crl3, self.ui.labelStatusFan1_3)
+        self.change_crl_icon(sa1_crl4, self.ui.labelStatusFan1_4)
+        self.change_crl_icon(sa1_crl5, self.ui.labelStatusFan1_5)
+        self.change_crl_icon(sa1_crl6, self.ui.labelStatusFan1_6)
+        self.change_crl_icon(sa1_crl7, self.ui.labelStatusFan1_7)
+        self.change_crl_icon(sa1_crl8, self.ui.labelStatusFan1_8)
+        self.change_crl_icon(sa1_crl9, self.ui.labelStatusFan1_9)
+        self.change_crl_icon(sa1_crl10, self.ui.labelStatusFan1_10)
 
+        # SASE 2 CRL indicators
+        sa2_crl1 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT1.STATE'))
+        sa2_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT2.STATE'))
+        sa2_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT3.STATE'))
+        sa2_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT4.STATE'))
+        sa2_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT5.STATE'))
+        sa2_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT6.STATE'))
+        sa2_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT7.STATE'))
+        sa2_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT8.STATE'))
+        sa2_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT9.STATE'))
+        sa2_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT10.STATE'))
+        self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
+        self.change_crl_icon(sa2_crl2, self.ui.labelStatusFan2_2)
+        self.change_crl_icon(sa2_crl3, self.ui.labelStatusFan2_3)
+        self.change_crl_icon(sa2_crl4, self.ui.labelStatusFan2_4)
+        self.change_crl_icon(sa2_crl5, self.ui.labelStatusFan2_5)
+        self.change_crl_icon(sa2_crl6, self.ui.labelStatusFan2_6)
+        self.change_crl_icon(sa2_crl7, self.ui.labelStatusFan2_7)
+        self.change_crl_icon(sa2_crl8, self.ui.labelStatusFan2_8)
+        self.change_crl_icon(sa2_crl9, self.ui.labelStatusFan2_9)
+        self.change_crl_icon(sa2_crl10, self.ui.labelStatusFan2_10)
+
+    def change_crl_icon(self, state, crl):
+        """ Update the CRL indicator status. """
+        if state == 'ON':
+            crl.setPixmap(QtGui.QPixmap(ICON_GREEN_LED))
+        elif state == 'OFF':
+            crl.setPixmap(QtGui.QPixmap(ICON_RED_LED))
+        else:
+            crl.setPixmap(QtGui.QPixmap(ICON_BLUE_LED))
 
 
     def write_doocs_data(self):

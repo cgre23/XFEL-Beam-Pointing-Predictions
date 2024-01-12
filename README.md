@@ -24,6 +24,12 @@ Change the measurement time, undulators measured and k-ranges. The tool can star
 python daq.py
 ```
 
+## Updating the User Interface using Designer
+
+Open the file UIDAQ.ui in the gui folder using DesignerQt to change the layout of the interface. Run these commands to update the interface:
+        
+        pyrcc5 gui/resources_rc.py -o gui/resources.qrc
+        pyuic5 --import-from .  gui/UIDAQ.ui -o gui/UIDAQ.py
 
 ## Authors and acknowledgment
 Christian Grech, Farzad Jafarinia (MXL).
