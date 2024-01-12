@@ -6,10 +6,10 @@ date=`date +'%Y-%m-%d'`
 date='2023-11-20'
 SASE='SA1'
 
-mkdir -p -m 777 "models/$SASE/$date"
+mkdir -p -m 777 "modules/models/$SASE/$date"
 #export PATH=/opt/mambaforge/bin:$PATH
 #source activate xfel
 #conda deactivate
 #conda activate dxmaf
-python modules/NN_train_dxmaf.py --SASE $SASE --run_name $date --properties "models/$SASE/" --source "runs/$SASE/" --label "$SASE-$date"
+python modules/NN_train_dxmaf.py --SASE $SASE --run_name $date --properties "modules/models/$SASE/" --source "modules/daq/runs/$SASE/" --label "$SASE-$date"
 #conda deactivate
