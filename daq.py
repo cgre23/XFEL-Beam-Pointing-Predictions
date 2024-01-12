@@ -74,6 +74,7 @@ class DAQApp(QWidget):
             self.ui.sequence_button.setText("Start DAQ")
             # Force Stop sequence
             try:
+                
                 pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
                 stop_log = datetime.now().isoformat(' ', 'seconds')+': Aborted the Taskomat sequence.\n'
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Aborted the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
@@ -87,9 +88,15 @@ class DAQApp(QWidget):
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Not able to stop the sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
                 self.ui.textBrowser.append(stop_log_html)
 
-
+    def start_dxmaf(self):
+        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"], preexec_fn=os.setsid)
+    
+    def stop_dxmaf(self):
+        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+    
     def start_sequence(self):
         try:
+           
             pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
@@ -97,6 +104,7 @@ class DAQApp(QWidget):
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
             while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1:
+            
                 log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
                 if log not in self.ui.textBrowser.toPlainText():
                     self.ui.textBrowser.append(pydoocs.read(self.sa1_sequence_prefix+'/LOG_HTML.LAST')['data'])
@@ -186,15 +194,15 @@ class DAQApp(QWidget):
     def check_crls(self):
         # SASE1 CRL indicators
         sa1_crl1 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT1.STATE'))
-        sa1_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT2.STATE'))
-        sa1_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT3.STATE'))
-        sa1_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT4.STATE'))
-        sa1_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT5.STATE'))
-        sa1_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT6.STATE'))
-        sa1_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT7.STATE'))
-        sa1_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT8.STATE'))
-        sa1_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT9.STATE'))
-        sa1_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT10.STATE'))
+        sa1_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS2.OUT1.STATE'))
+        sa1_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS3.OUT1.STATE'))
+        sa1_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS4.OUT1.STATE'))
+        sa1_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS5.OUT1.STATE'))
+        sa1_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS6.OUT1.STATE'))
+        sa1_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS7.OUT1.STATE'))
+        sa1_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS8.OUT1.STATE'))
+        sa1_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS9.OUT1.STATE'))
+        sa1_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS10.OUT1.STATE'))
         self.change_crl_icon(sa1_crl1, self.ui.labelStatusFan1_1)
         self.change_crl_icon(sa1_crl2, self.ui.labelStatusFan1_2)
         self.change_crl_icon(sa1_crl3, self.ui.labelStatusFan1_3)
@@ -208,15 +216,15 @@ class DAQApp(QWidget):
 
         # SASE 2 CRL indicators
         sa2_crl1 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT1.STATE'))
-        sa2_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT2.STATE'))
-        sa2_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT3.STATE'))
-        sa2_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT4.STATE'))
-        sa2_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT5.STATE'))
-        sa2_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT6.STATE'))
-        sa2_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT7.STATE'))
-        sa2_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT8.STATE'))
-        sa2_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT9.STATE'))
-        sa2_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS1.OUT10.STATE'))
+        sa2_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS2.OUT1.STATE'))
+        sa2_crl3 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS3.OUT1.STATE'))
+        sa2_crl4 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS4.OUT1.STATE'))
+        sa2_crl5 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS5.OUT1.STATE'))
+        sa2_crl6 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS6.OUT1.STATE'))
+        sa2_crl7 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS7.OUT1.STATE'))
+        sa2_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS8.OUT1.STATE'))
+        sa2_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS9.OUT1.STATE'))
+        sa2_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS10.OUT1.STATE'))
         self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
         self.change_crl_icon(sa2_crl2, self.ui.labelStatusFan2_2)
         self.change_crl_icon(sa2_crl3, self.ui.labelStatusFan2_3)

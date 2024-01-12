@@ -1,0 +1,16 @@
+name: dxmaf
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - pypubsub
+  - python=3.9
+  - pytimeparse
+  - strictyaml
+  - jpeg
+  - pandas
+  - pytorch
+  - pyarrow
+  - fastparquet
+  - scipy
+  - matplotlib

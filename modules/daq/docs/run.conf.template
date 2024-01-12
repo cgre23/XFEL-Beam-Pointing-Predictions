@@ -1,0 +1,149 @@
+# DxMAF Run Config Template
+# -------------------------
+# This is a template providing an example for all possible DxMAF options that can be configured using the run config
+# file. The configuration is used to define custom middle-layer applications based on individual modules.
+# The configuration is only loaded automatically when there's a unique valid config file in the current working
+# directory. A specific configuration file can always be loaded using the designated command-line argument.
+#
+# The configuration file is written in a subset of the YAML format, called strictyaml, to avoid unexpected behaviour due
+# to format inconsistencies. If the config file does not comply exactly with the specification, DxMAF will return
+# an error. Most directives are optional. If they are not set explicitly, a default value is used.
+
+
+# DxMAF Config
+# [Use-case Description]
+
+# Relative or absolute path to the DxMAF extension directory.
+# Examples: mods, ../plugins, /tmp/data, ...
+# Default: ./extensions
+extensions_path: ./dxmaf/extensions
+
+# Stop time, formatted as any valid datetime string. If just a time is provided, day-wrapping is performed.
+# If specified along with `duration`, the application terminates on whichever comes first.
+# Default: None (forever)
+stop_time: 2020-01-22T23:50:00
+
+# Duration for how long to run, formatted as a time delta. If specified along with `stop_time`, the application
+# terminates on whichever comes first.
+# Examples: 05:20:30 (5 hours, 20 mins, 30 seconds), 05h20m, ...
+# Default: None (forever)
+duration: 5h32m2s
+
+# Time (in seconds) after which a call to PyDOOCS for data is considered timed out and the application is terminated
+# with an error.
+# Default: 2
+timeout: 10
+
+
+# Defines the application as a list of modules instantiated with specific parameters.
+application:
+    # A module, given by class name of an extension class in one of the extension files.
+    # The `ThresholdChecker` module checks that data stays within bounds and notifies other modules if thresholds are
+    # violated.
+    - type: ThresholdChecker
+      # The channels whose data is passed to the process method of the DataSubscriber derivative.
+      # In other words, this is the data the module will operate on, in this case compare to the configured thresholds.
+      channels:
+          - LAB.SYNC/LASER.LOCK/26A.L1/LOCK_STATUS.VALUE.RD
+          - LAB.SYNC/LASER.LOCK/26A.L1/CURRENT_INPUT_JITTER.RD
+      # The extra arguments passed to the constructor of the extension as keyword-value pairs. No positional arguments.
+      args:
+          # Topics to which to emit a signal once either limit has been exceeded. Once a signal has been emitted, no
+          # further signals will be emitted until the threshold is reset by a data sample within the bounds.
+          # Due to technical reasons, the `topics` argument always needs to be provided, even if empty.
+          topics:
+              - ThresholdViolated
+          # The upper limit which the data should not exceed.
+          lower_limit: 0
+          # The lower limit which the data should not fall below.
+          upper_limit: 1
+    # The `FileWriter` extension dumps received data to the file system.
+    - type: FileWriter
+      channels:
+           - LAB.SYNC/LASER.LOCK/26A.L1/CTRL0_OUT.SPEC
+      args:
+          # Topics to which to emit a signal once a file split has occured. Useful for automated file transfers.
+          topics:
+            - MoveFiles
+          # Relative or absolute path to where the collected data is stored. Accepts datetime tokes (filled on startup).
+          # Examples: data, ../data, /tmp/data, ...
+          # Default: .
+          output_dir: ./data/run_%Y-%m-%d_%H%M%S_MLO1
+          # Whether to store timestamps
+          record_timestamps: true
+          # Size in bytes after which to split the files. Useful to avoid big files or file system quota breaking by 
+          # transferring files during collection
+          # Default: None
+          split_size: 1000000
+          # Delays the file split action to N data sequence IDs after receiving a split event. Useful to record more
+          # data after e.g. a threshold has been broken.
+          # Default: 1
+          split_signal_delay: 10
+          # Mapping assigning some static metadata from a template file to each channel in `channels`.
+          static_metadata_files:
+              LAB.SYNC/LASER.LOCK/26A.L1/CTRL0_OUT.SPEC: fast_channel.meta
+
+    # The `RingFileWriter` extension is similar to the `FileWriter` but keeps a ring-buffer that is stored when
+    # receiving a signal.
+    - type: RingFileWriter
+      channels:
+          - LAB.SYNC/LASER.LOCK/26A.L1/CTRL0_OUT.SPEC
+      # These are the topics the module will listen on. In this example, the ring file writer, will save the current
+      # ring when being notified about a threshold violation.
+      topics:
+          - ThresholdViolated
+      args:
+          # Same as for `FileWriter`
+          topics:
+          # Length of the ringbuffer in samples.
+          # No default, always required
+          ring_file_size: 200
+          # Same as for `FileWriter`
+          output_dir: ./run_%Y-%m-%d-%H%M%S
+          # Subdirectory for each ringbuffer
+          ring_dir_name: trip_%Y-%m-%d-%H%M%S
+          # Same as for `FileWriter`. Does not increase effective `ring_file_time`.
+          split_signal_delay:
+          # If true, the ring buffer is kept in memory until the split event. Reduces write wear on storage device but
+          # can easily fill up all of system memory and swap space. Use with caution.
+          # Default: False
+          memory_buffering: true
+    # The `FileMover` automatically moves (and optionally archvies) files when receiving a signal.
+    - type: FileMover
+      # Topics to listen to for filesnames to move. Connect to e.g. output of FileWriter
+      topics:
+        - MoveFiles
+      args:
+        # Same as for `FileWriter`
+        record_timestamps: true
+        # Whether to put all files into an archive rather than just moving. Archiving format is extracted from
+        # extension of `destination`. 'zip' per default if extension is not recognized, supported or entirely missing.
+        archive: true
+        # If archiving is true, `destination` is a template path for the resulting archive (running sequence numbers are
+        # added automatically. If not, `destination` the target directory to which to move the data. Accepts datetime
+        # tokens (filled on startup).
+        # Default: $HOME
+        destination: /home/jdoe/Public/trip_%Y-%m-%d/data_%H%M%S.zip
+
+
+# BETA SECTION
+# Modules down here are in beta or design phase.
+    # The `EventConsoleLogger` writes event information out to the console.
+    - type: EventConsoleLogger
+      topics:
+        - ThresholdViolated
+      args:
+        # The message to be printed when receiving the event
+        # Default: "Signal Received!"
+        message: Hi there!
+    # The `EmailDispatcher` module sends an email when receiving a signal.
+    - type: EmailDispatcher
+      args:
+          # A list of email addresses to receive the email notification.
+          recipients:
+            - john.doe@desy.de
+            - jane.doe@desy.de
+          # The title of the email.
+          title: Trip occured at station...
+          # The content of the email.
+          content: Go do something!
