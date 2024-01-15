@@ -27,6 +27,10 @@ import yaml
 ICON_RED_LED = ":/icons/led-red-on.png"
 ICON_GREEN_LED = ":/icons/green-led-on.png"
 ICON_BLUE_LED = ":/icons/blue-led-on.png"
+ICON_GREY_LED = ":/icons/grey-led-on.png"
+ICON_ORANGE_LED = ":/icons/orange-led-on.png"
+ICON_PURPLE_LED = ":/icons/purple-led-on.png"
+ICON_YELLOW_LED = ":/icons/yellow-led-on.png"
 
 class DAQApp(QWidget):
     def __init__(self, parent=None):
@@ -37,6 +41,8 @@ class DAQApp(QWidget):
         self.ui.setupUi(self)
         self.logstring = []
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
+        self.sa1_sequence_background_step =self.sa1_sequence_prefix +'/STEP007'
+        self.config_file = "modules/daq/docs/datalog_writer_SA1.conf"
         self.ui.sequence_button.setCheckable(True)
         self.ui.sequence_button.setEnabled(True)
         self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
@@ -89,22 +95,28 @@ class DAQApp(QWidget):
                 self.ui.textBrowser.append(stop_log_html)
 
     def start_dxmaf(self):
-        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"], preexec_fn=os.setsid)
+        """ Start DXMAF measurement """
+        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"])
     
-    def stop_dxmaf(self):
-        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
     
     def start_sequence(self):
+        """ Start DAQ measurement """
         try:
-           
+            self.set_config() # make sure DXMAF config file has the correct measurement duration
             pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Started the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
+            dxmaf_flag = True
             while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1:
-            
+                # Start running dxmaf only when Step 7 is running and only call the start function once.
+                if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 1:
+                    if dxmaf_flag == True:
+                        self.start_dxmaf()
+                        dxmaf_flag == False
+
                 log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
                 if log not in self.ui.textBrowser.toPlainText():
                     self.ui.textBrowser.append(pydoocs.read(self.sa1_sequence_prefix+'/LOG_HTML.LAST')['data'])
@@ -130,12 +142,14 @@ class DAQApp(QWidget):
 
 
     def update_taskomat_logs(self):
+        """" Get the last log from DOOCS and append to string """
         self.last_log_html = pydoocs.read(self.sa1_sequence_prefix+'/LOG_HTML.LAST')['data']
         self.last_log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
         self.logstring.append(self.last_log+'\n')
         self.ui.textBrowser.append(self.last_log_html)
 
     def simple_doocs_read(self, addr):
+        """ DOOCS read function """
         if do_doocs:
             try:
                 v = pydoocs.read(addr)['data']
@@ -147,6 +161,7 @@ class DAQApp(QWidget):
         return v
 
     def simple_doocs_write(self, addr, value):
+        """ DOOCS write function """
         if do_doocs:
             try:
                 x = pydoocs.write(addr, value)
@@ -159,6 +174,7 @@ class DAQApp(QWidget):
         return v
 
     def fetch_doocs_data(self):
+        """ Get measurement settings/CRL indicators from DOOCS and display to the panel """
         undulators = int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS'))
         if undulators == 1:
             undulator_name = 'SASE1'
@@ -192,6 +208,7 @@ class DAQApp(QWidget):
         self.ui.log.setText('Fetched data from DOOCS')
 
     def check_crls(self):
+        """ Check CRL indicators from DOOCS and change icon color """
         # SASE1 CRL indicators
         sa1_crl1 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS1.OUT1.STATE'))
         sa1_crl2 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS2.OUT1.STATE'))
@@ -241,12 +258,13 @@ class DAQApp(QWidget):
         if state == 'ON':
             crl.setPixmap(QtGui.QPixmap(ICON_GREEN_LED))
         elif state == 'OFF':
-            crl.setPixmap(QtGui.QPixmap(ICON_RED_LED))
+            crl.setPixmap(QtGui.QPixmap(ICON_ORANGE_LED))
         else:
-            crl.setPixmap(QtGui.QPixmap(ICON_BLUE_LED))
+            crl.setPixmap(QtGui.QPixmap(ICON_GREY_LED))
 
 
     def write_doocs_data(self):
+        """ Write the measurement settings to DOOCS """
         self.set_config()
         undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
         und_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS', undulators)
@@ -261,27 +279,26 @@ class DAQApp(QWidget):
         self.ui.log.setText('Wrote data to DOOCS')
 
     def set_config(self):
-        config_file = "modules/daq/docs/datalog_writer_SA1 copy.conf"
+        """ Get measurement time set in the Settings tab and write this number to the DXMAF configuration file  """    
         duration = (self.ui.measurement_time.value()/10)*self.ui.iterations.value()
-        with open(config_file, 'r') as file:
+        with open(self.config_file, 'r') as file:
             cur_yaml = yaml.safe_load(file)
             cur_yaml.update({'duration': str(timedelta(seconds=duration))})
-            print(cur_yaml)
-
-        with open(config_file,'w') as yamlfile:
+        with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
-
-
     def update_estimated_time(self):
+        """ Convert the measurement and iteration settings from the Settings tab to an estimated time in minutes """
         time = np.round((self.ui.measurement_time.value()/600)*self.ui.iterations.value(), 2)
         self.ui.total_meas_time.setText(str(time))
 
     def makedirs(self, dest):
+        """ Create a directory if it does not exist """
         if not os.path.exists(dest):
             os.makedirs(dest)
 
     def deletedirs(self):
+        """ Delete temporary folders """
         path = os.getcwd()
         file_path = path + '/temp/'
         try:

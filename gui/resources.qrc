@@ -4,5 +4,10 @@
         <file>icons/grid.png</file>
         <file>icons/led-red-on.png</file>
         <file>icons/online.png</file>
+	<file>icons/grey-led-on.png</file>
+	<file>icons/blue-led-on.png</file>
+	<file>icons/yellow-led-on.png</file>
+	<file>icons/orange-led-on.png</file>
+	<file>icons/purple-led-on.png</file>
     </qresource>
 </RCC>
