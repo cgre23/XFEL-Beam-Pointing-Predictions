@@ -43,6 +43,7 @@ class DAQApp(QWidget):
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
         self.sa1_sequence_background_step =self.sa1_sequence_prefix +'/STEP007'
         self.config_file = "modules/daq/docs/datalog_writer_SA1.conf"
+        self.data_path = 'modules/daq/runs/SA1/'
         self.ui.sequence_button.setCheckable(True)
         self.ui.sequence_button.setEnabled(True)
         self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
@@ -81,7 +82,7 @@ class DAQApp(QWidget):
             # Force Stop sequence
             try:
                 
-                #pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
+                pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
                 stop_log = datetime.now().isoformat(' ', 'seconds')+': Aborted the Taskomat sequence.\n'
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Aborted the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
                 self.logstring.append(stop_log)
@@ -103,19 +104,24 @@ class DAQApp(QWidget):
         """ Start DAQ measurement """
         try:
             self.set_config() # make sure DXMAF config file has the correct measurement duration
-            #pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
+            pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Started the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
             dxmaf_flag = True
-            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 0: #############
+            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1: #############
                 # Start running dxmaf only when Step 7 is running and only call the start function once.
-                if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 0:  #################
+                if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 1:  #################
                     if dxmaf_flag == True:
-                        self.start_dxmaf()
-                        dxmaf_flag == False
+                    	dxmaf_flag = False
+                    	now = datetime.now()
+                    	dt_string = now.strftime("%Y-%m-%d")
+                    	path = self.data_path + dt_string
+                    	self.makedirs(path)
+                    	self.start_dxmaf()
+                        
 
                 log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
                 if log not in self.ui.textBrowser.toPlainText():
