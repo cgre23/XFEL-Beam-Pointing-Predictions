@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 0
+do_doocs = 1
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -81,7 +81,7 @@ class DAQApp(QWidget):
             # Force Stop sequence
             try:
                 
-                pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
+                #pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
                 stop_log = datetime.now().isoformat(' ', 'seconds')+': Aborted the Taskomat sequence.\n'
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Aborted the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
                 self.logstring.append(stop_log)
@@ -103,16 +103,16 @@ class DAQApp(QWidget):
         """ Start DAQ measurement """
         try:
             self.set_config() # make sure DXMAF config file has the correct measurement duration
-            pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
+            #pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Started the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
             dxmaf_flag = True
-            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1:
+            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 0: #############
                 # Start running dxmaf only when Step 7 is running and only call the start function once.
-                if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 1:
+                if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 0:  #################
                     if dxmaf_flag == True:
                         self.start_dxmaf()
                         dxmaf_flag == False
