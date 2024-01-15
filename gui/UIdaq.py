@@ -35,6 +35,11 @@ class Ui_Form(object):
         self.sequence_button.setCheckable(True)
         self.sequence_button.setObjectName("sequence_button")
         self.verticalLayout_2.addWidget(self.sequence_button)
+        self.warning = QtWidgets.QLabel(self.groupBox)
+        self.warning.setMaximumSize(QtCore.QSize(16777215, 15))
+        self.warning.setText("")
+        self.warning.setObjectName("warning")
+        self.verticalLayout_2.addWidget(self.warning)
         self.textBrowser = QtWidgets.QTextBrowser(self.groupBox)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -428,7 +433,7 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.Model_2, 0, 0, 1, 1)
 
         self.retranslateUi(Form)
-        self.Model_2.setCurrentIndex(1)
+        self.Model_2.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):

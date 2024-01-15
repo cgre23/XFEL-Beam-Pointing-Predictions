@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 1
+do_doocs = 0
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -110,6 +110,7 @@ class DAQApp(QWidget):
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Started the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
+            undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
             dxmaf_flag = True
             while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1: #############
                 # Start running dxmaf only when Step 7 is running and only call the start function once.
