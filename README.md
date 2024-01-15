@@ -28,7 +28,7 @@ python daq.py
 
 Open the file UIDAQ.ui in the gui folder using DesignerQt to change the layout of the interface. Run these commands to update the interface:
         
-        pyrcc5 gui/resources_rc.py -o gui/resources.qrc
+        pyrcc5 gui/resources.qrc -o gui/resources_rc.py
         pyuic5 --import-from .  gui/UIDAQ.ui -o gui/UIDAQ.py
 
 ## Authors and acknowledgment
