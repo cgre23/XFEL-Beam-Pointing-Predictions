@@ -1,0 +1,20 @@
+name: dxmaf
+channels:
+  - http://doocspkgs.desy.de/pub/doocsconda
+  - defaults
+dependencies:
+  - numpy
+  - pypubsub
+  - python=3.9.7
+  - pytimeparse
+  - strictyaml
+  - jpeg
+  - pandas
+  - pytorch
+  - ca-certificates
+  - openssl
+  - pyarrow
+  - fastparquet
+  - scipy
+  - matplotlib
+prefix: /home/xfeloper/.conda/envs/dxmaf

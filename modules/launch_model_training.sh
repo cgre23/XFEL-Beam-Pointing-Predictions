@@ -11,5 +11,5 @@ mkdir -p -m 777 "modules/models/$SASE/$date"
 #source activate xfel
 #conda deactivate
 #conda activate dxmaf
-python modules/NN_train_dxmaf.py --SASE $SASE --run_name $date --properties "modules/models/$SASE/" --source "modules/daq/runs/$SASE/" --label "$SASE-$date"
+python NN_train_dxmaf.py --SASE $SASE --run_name $date --properties "models/$SASE/" --source "daq/runs/$SASE/" --label "$SASE-$date"
 #conda deactivate
