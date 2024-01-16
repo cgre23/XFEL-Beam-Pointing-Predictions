@@ -66,6 +66,9 @@
             <property name="text">
              <string/>
             </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
            </widget>
           </item>
           <item>
@@ -1018,6 +1021,52 @@
       <attribute name="title">
        <string>Model</string>
       </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="2" column="2">
+        <widget class="QPushButton" name="launchmodel">
+         <property name="text">
+          <string>Launch model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QTreeView" name="daq"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="trainmodel">
+         <property name="text">
+          <string>Train model</string>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QTreeView" name="models"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Models</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>DAQ Data</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>

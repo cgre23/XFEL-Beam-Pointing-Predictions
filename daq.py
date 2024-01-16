@@ -8,7 +8,7 @@ from os.path import isfile, join
 import h5py
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import Qt, QDateTime
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog, QFileSystemModel
 from gui.UIdaq import Ui_Form
 import threading, queue
 import shutil
@@ -43,7 +43,8 @@ class DAQApp(QWidget):
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
         self.sa1_sequence_background_step =self.sa1_sequence_prefix +'/STEP007'
         self.config_file = "modules/daq/docs/datalog_writer_SA1.conf"
-        self.data_path = 'modules/daq/runs/SA1/'
+        self.data_path = 'modules/daq/runs/'
+        self.model_path = 'modules/models/'
         self.ui.sequence_button.setCheckable(True)
         self.ui.sequence_button.setEnabled(True)
         self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
@@ -52,6 +53,9 @@ class DAQApp(QWidget):
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
         self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
+        self.ui.trainmodel.setEnabled(False)
+        self.ui.launchmodel.setEnabled(False)
+        self.list_directories()
         self.check_crls()
 
     def toggleSequenceButton(self):
@@ -120,7 +124,7 @@ class DAQApp(QWidget):
                     	dxmaf_flag = False
                     	now = datetime.now()
                     	dt_string = now.strftime("%Y-%m-%d")
-                    	path = self.data_path + dt_string
+                    	path = self.data_path + 'SA1/' + dt_string
                     	self.makedirs(path)
                     	self.start_dxmaf()
                         
@@ -230,7 +234,7 @@ class DAQApp(QWidget):
         sa1_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS10.OUT1.STATE'))
         sa1_crls = [sa1_crl1, sa1_crl2, sa1_crl3, sa1_crl4, sa1_crl5, sa1_crl6, sa1_crl7, sa1_crl8, sa1_crl9, sa1_crl10]
         if 'OFF' in sa1_crls:
-            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA1.')
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) are inserted in SA1.')
         else:
             self.ui.warning.setText('')
         self.change_crl_icon(sa1_crl1, self.ui.labelStatusFan1_1)
@@ -257,12 +261,12 @@ class DAQApp(QWidget):
         sa2_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS10.OUT1.STATE'))
         sa2_crls = [sa2_crl1, sa2_crl2, sa2_crl3, sa2_crl4, sa2_crl5, sa2_crl6, sa2_crl7, sa2_crl8, sa2_crl9, sa2_crl10]
         if 'OFF' in sa2_crls:
-            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA2.')
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) are inserted in SA2.')
         else:
             self.ui.warning.setText('')
 
         if 'OFF' in sa2_crls and 'OFF' in sa1_crls:
-            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA1 and SA2.')
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) are inserted in SA1 and SA2.')
         else:
             self.ui.warning.setText('')
         self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
@@ -314,6 +318,34 @@ class DAQApp(QWidget):
         """ Convert the measurement and iteration settings from the Settings tab to an estimated time in minutes """
         time = np.round((self.ui.measurement_time.value()/600)*self.ui.iterations.value(), 2)
         self.ui.total_meas_time.setText(str(time))
+
+    def list_directories(self):
+        self.dirModel = QFileSystemModel()
+        self.dirModel.setRootPath(self.data_path)
+        self.dirModel.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot) # only show up to the folder level
+        self.modModel = QFileSystemModel()
+        self.modModel.setRootPath(self.model_path)
+        
+        self.ui.daq.setModel(self.dirModel)
+        self.ui.daq.setRootIndex(self.dirModel.index(self.data_path))
+        self.ui.daq.setSortingEnabled(True)
+        # Make sure first column width is stretched
+        self.ui.daq.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.models.setModel(self.modModel)
+        self.ui.models.setRootIndex(self.modModel.index(self.model_path))
+        self.ui.models.setSortingEnabled(True)
+        # Make sure first column width is stretched
+        self.ui.models.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.daq.clicked.connect(self.on_clicked_daq)
+        self.ui.models.clicked.connect(self.on_clicked_models)
+
+    def on_clicked_daq(self, index):
+        self.ui.trainmodel.setEnabled(True)
+        path = self.dirModel.fileInfo(index).absoluteFilePath()
+        
+    def on_clicked_models(self, index):
+        self.ui.launchmodel.setEnabled(True)
+        path = self.dirModel.fileInfo(index).absoluteFilePath()
 
     def makedirs(self, dest):
         """ Create a directory if it does not exist """
