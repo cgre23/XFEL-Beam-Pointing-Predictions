@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 0
+do_doocs = 1
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -290,7 +290,7 @@ class DAQApp(QWidget):
         duration = (self.ui.measurement_time.value()/10)*self.ui.iterations.value()
         with open(self.config_file, 'r') as file:
             cur_yaml = yaml.safe_load(file)
-            cur_yaml.update({'duration': str(timedelta(seconds=duration))})
+            cur_yaml.update({'duration': str(timedelta(seconds=duration)+timedelta(seconds=30))})
         with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
