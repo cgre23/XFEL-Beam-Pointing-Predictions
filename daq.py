@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 1
+do_doocs = 0
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -51,6 +51,7 @@ class DAQApp(QWidget):
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
+        self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
         self.check_crls()
 
     def toggleSequenceButton(self):
@@ -227,6 +228,11 @@ class DAQApp(QWidget):
         sa1_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS8.OUT1.STATE'))
         sa1_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS9.OUT1.STATE'))
         sa1_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA1_XTD2_CRL/LENS10.OUT1.STATE'))
+        sa1_crls = [sa1_crl1, sa1_crl2, sa1_crl3, sa1_crl4, sa1_crl5, sa1_crl6, sa1_crl7, sa1_crl8, sa1_crl9, sa1_crl10]
+        if 'OFF' in sa1_crls:
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA1.')
+        else:
+            self.ui.warning.setText('')
         self.change_crl_icon(sa1_crl1, self.ui.labelStatusFan1_1)
         self.change_crl_icon(sa1_crl2, self.ui.labelStatusFan1_2)
         self.change_crl_icon(sa1_crl3, self.ui.labelStatusFan1_3)
@@ -249,6 +255,16 @@ class DAQApp(QWidget):
         sa2_crl8 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS8.OUT1.STATE'))
         sa2_crl9 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS9.OUT1.STATE'))
         sa2_crl10 = str(self.simple_doocs_read('XFEL.FEL/CRL.SWITCH/SA2_XTD1_CRL/LENS10.OUT1.STATE'))
+        sa2_crls = [sa2_crl1, sa2_crl2, sa2_crl3, sa2_crl4, sa2_crl5, sa2_crl6, sa2_crl7, sa2_crl8, sa2_crl9, sa2_crl10]
+        if 'OFF' in sa2_crls:
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA2.')
+        else:
+            self.ui.warning.setText('')
+
+        if 'OFF' in sa2_crls and 'OFF' in sa1_crls:
+            self.ui.warning.setText('Warning: One or more focusing lens (CRL) inserted in SA1 and SA2.')
+        else:
+            self.ui.warning.setText('')
         self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
         self.change_crl_icon(sa2_crl2, self.ui.labelStatusFan2_2)
         self.change_crl_icon(sa2_crl3, self.ui.labelStatusFan2_3)
