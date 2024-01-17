@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 0
+do_doocs = 1
 if do_doocs == 1:
     import pydoocs
 import yaml
