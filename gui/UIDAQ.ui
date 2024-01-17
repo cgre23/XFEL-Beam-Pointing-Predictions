@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>849</width>
-    <height>434</height>
+    <height>435</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1045,6 +1045,13 @@
        <item row="1" column="2">
         <widget class="QTreeView" name="models"/>
        </item>
+       <item row="1" column="1">
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="2">
         <widget class="QLabel" name="label_2">
          <property name="text">
@@ -1059,10 +1066,10 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="3" column="0" colspan="3">
+        <widget class="QLabel" name="model_log">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

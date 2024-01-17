@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 1
+do_doocs = 0
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -36,7 +36,6 @@ class DAQApp(QWidget):
     def __init__(self, parent=None):
         super().__init__()
         # Initialize parameters
-        self.daterange = 0
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.logstring = []
@@ -55,8 +54,8 @@ class DAQApp(QWidget):
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
         self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
-        self.ui.trainmodel.setEnabled(False)
-        self.ui.launchmodel.setEnabled(False)
+        self.ui.trainmodel_button.setEnabled(False)
+        self.ui.launchmodel_button.setEnabled(False)
         self.list_directories()
         self.check_crls()
 
@@ -322,6 +321,7 @@ class DAQApp(QWidget):
         self.ui.total_meas_time.setText(str(time))
 
     def list_directories(self):
+        """ List directories in the model path """
         self.dirModel = QFileSystemModel()
         self.dirModel.setRootPath(self.data_path)
         self.dirModel.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot) # only show up to the folder level
@@ -342,18 +342,75 @@ class DAQApp(QWidget):
         self.ui.models.clicked.connect(self.on_clicked_models)
 
     def on_clicked_daq(self, index):
-        self.ui.trainmodel.setEnabled(True)
-        path = self.dirModel.fileInfo(index).absoluteFilePath()
+        """ On clicking the directory in the Model tab, save the path """
+        self.ui.trainmodel_button.setEnabled(True)
+        self.train_data_path = self.dirModel.fileInfo(index).absoluteFilePath()
         
     def on_clicked_models(self, index):
-        self.ui.launchmodel.setEnabled(True)
-        path = self.dirModel.fileInfo(index).absoluteFilePath()
+        """ On clicking the directory in the Model tab, save the path """
+        self.ui.launchmodel_button.setEnabled(True)
+        self.launch_model_path = self.dirModel.fileInfo(index).absoluteFilePath()
 
     def train_model(self):
-        pass
+        """ Switch a flag in DOOCS to start the model training procedure, also writing the date and the status """
+        if 'SA1' in self.train_data_path and '-' in self.train_data_path.split('/')[-1] :
+            date = self.train_data_path.split('/')[-1]
+            self.ui.model_log.setText('Model training for SA1 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/TRAIN_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/TRAIN_MODEL_DATE', date)
+                start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/TRAIN_MODEL_FLAG', 1)
+                status_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/TRAIN_MODEL_STATUS', 'REQUESTED')
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being trained.')
+        elif 'SA2' in self.train_data_path and '-' in self.train_data_path.split('/')[-1] :
+            date = self.train_data_path.split('/')[-1]
+            self.ui.model_log.setText('Model training for SA2 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/TRAIN_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/TRAIN_MODEL_DATE', date)
+                start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/TRAIN_MODEL_FLAG', 1)
+                status_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/TRAIN_MODEL_STATUS', 'REQUESTED')
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being trained.')
+        elif 'SA3' in self.train_data_path and '-' in self.train_data_path.split('/')[-1] :
+            date = self.train_data_path.split('/')[-1]
+            self.ui.model_log.setText('Model training for SA3 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/TRAIN_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/TRAIN_MODEL_DATE', date)
+                start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/TRAIN_MODEL_FLAG', 1)
+                status_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/TRAIN_MODEL_STATUS', 'REQUESTED')
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being trained.')
+        else:
+            self.ui.model_log.setText('Not a valid data location')
 
     def launch_model(self):
-        pass
+        """ Switch a flag in DOOCS to launch the model predictions """
+        if 'SA1' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
+            date = self.launch_model_path.split('/')[-1]
+            self.ui.model_log.setText('Model update for SA1 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_DATE', date)
+                start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG', 1)
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
+        elif 'SA2' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
+            date = self.launch_model_path.split('/')[-1]
+            self.ui.model_log.setText('Model update for SA2 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_DATE', date)
+                update_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_FLAG', 1)
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
+        elif 'SA3' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
+            date = self.launch_model_path.split('/')[-1]
+            self.ui.model_log.setText('Model update for SA3 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_FLAG')) == 0:
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_DATE', date)
+                update_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_FLAG', 1)
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
+        else:
+            self.ui.model_log.setText('Not a valid model location')
 
     def makedirs(self, dest):
         """ Create a directory if it does not exist """
