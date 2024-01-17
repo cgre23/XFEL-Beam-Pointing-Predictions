@@ -266,10 +266,7 @@ class DAQApp(QWidget):
         else:
             self.ui.warning.setText('')
 
-        if 'OFF' in sa2_crls and 'OFF' in sa1_crls:
-            self.ui.warning.setText('Warning: One or more focusing lens (CRL) are inserted in SA1 and SA2.')
-        else:
-            self.ui.warning.setText('')
+        
         self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
         self.change_crl_icon(sa2_crl2, self.ui.labelStatusFan2_2)
         self.change_crl_icon(sa2_crl3, self.ui.labelStatusFan2_3)
