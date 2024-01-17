@@ -1023,7 +1023,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="2" column="2">
-        <widget class="QPushButton" name="launchmodel">
+        <widget class="QPushButton" name="launchmodel_button">
          <property name="text">
           <string>Launch model</string>
          </property>
@@ -1033,7 +1033,7 @@
         <widget class="QTreeView" name="daq"/>
        </item>
        <item row="2" column="0">
-        <widget class="QPushButton" name="trainmodel">
+        <widget class="QPushButton" name="trainmodel_button">
          <property name="text">
           <string>Train model</string>
          </property>

@@ -50,6 +50,8 @@ class DAQApp(QWidget):
         self.ui.sequence_button.clicked.connect(self.toggleSequenceButton)
         self.ui.fetch_button.clicked.connect(self.fetch_doocs_data)
         self.ui.write_button.clicked.connect(self.write_doocs_data)
+        self.ui.trainmodel_button.clicked.connect(self.train_model)
+        self.ui.launchmodel_button.clicked.connect(self.launch_model)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
         self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
@@ -285,7 +287,7 @@ class DAQApp(QWidget):
         if state == 'ON':
             crl.setPixmap(QtGui.QPixmap(ICON_GREEN_LED))
         elif state == 'OFF':
-            crl.setPixmap(QtGui.QPixmap(ICON_ORANGE_LED))
+            crl.setPixmap(QtGui.QPixmap(ICON_PURPLE_LED))
         else:
             crl.setPixmap(QtGui.QPixmap(ICON_GREY_LED))
 
@@ -346,6 +348,12 @@ class DAQApp(QWidget):
     def on_clicked_models(self, index):
         self.ui.launchmodel.setEnabled(True)
         path = self.dirModel.fileInfo(index).absoluteFilePath()
+
+    def train_model(self):
+        pass
+
+    def launch_model(self):
+        pass
 
     def makedirs(self, dest):
         """ Create a directory if it does not exist """
