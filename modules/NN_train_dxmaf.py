@@ -1,20 +1,19 @@
 import os
 import sys
 import getopt
-import torch
 import json
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from scipy.stats import pearsonr
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
 import warnings
 import logging
 from datetime import datetime
 import yaml
 import numpy as np
-
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
 # Set up logging and suppress warnings
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 warnings.filterwarnings("ignore")
@@ -61,7 +60,7 @@ class MyDataset(Dataset):
     
 # Function to print help and exit the program
 def HelpAndExit():
-    logging.error("The program merges data from Karabo and DOOCS. Provide SASE and date")
+    logging.error("This program trains a PyTorch model based on daq data. Provide SASE and date")
     logging.error("\t-h\t\t- prints this help\n")
     sys.exit(1)
     
@@ -208,7 +207,7 @@ if __name__ == "__main__":
     # Record the start time for training
     start_time = datetime.now()  
     logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run)
-        
+    logging.info('%s', sys.path)
     data = {}
     
     torch.backends.cudnn.enabled = False
