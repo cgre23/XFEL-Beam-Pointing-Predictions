@@ -18,7 +18,7 @@ from modules.spectr_gui import send_to_desy_elog
 import gui.resources_rc
 import subprocess
 import time
-do_doocs = 0
+do_doocs = 1
 if do_doocs == 1:
     import pydoocs
 import yaml
@@ -51,6 +51,9 @@ class DAQApp(QWidget):
         self.ui.write_button.clicked.connect(self.write_doocs_data)
         self.ui.trainmodel_button.clicked.connect(self.train_model)
         self.ui.launchmodel_button.clicked.connect(self.launch_model)
+        self.ui.restart_image_button.clicked.connect(self.restart_image_analysis_server)
+        self.ui.restart_prediction_button.clicked.connect(self.restart_model_prediction_server)
+        self.ui.restart_training_button.clicked.connect(self.restart_model_training_server)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
         self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
@@ -410,6 +413,18 @@ class DAQApp(QWidget):
                 self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
         else:
             self.ui.model_log.setText('Not a valid model location')
+
+    def restart_image_analysis_server(self):
+        """ Restart image analysis server """
+        restart_flag = self.simple_doocs_write('XFEL.UTIL/PY_IMAGE_ANALYSIS/XFELML3._SVR/SVR.STOP_SVR', 1)
+
+    def restart_model_training_server(self):
+        """ Restart model training server """
+        restart_flag = self.simple_doocs_write('XFEL.UTIL/PY_BEAM_POINTING_TRAINING/XFELML3._SVR/SVR.STOP_SVR', 1)
+
+    def restart_model_prediction_server(self):
+        """ Restart model prediction server """
+        restart_flag = self.simple_doocs_write('XFEL.UTIL/PY_BEAM_POINTING_PREDICTION/XFELML3._SVR/SVR.STOP_SVR', 1)
 
     def makedirs(self, dest):
         """ Create a directory if it does not exist """
