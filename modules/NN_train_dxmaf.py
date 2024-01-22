@@ -207,6 +207,7 @@ if __name__ == "__main__":
     # Record the start time for training
     start_time = datetime.now()  
     logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run)
+    
     data = {}
     
     torch.backends.cudnn.enabled = False
