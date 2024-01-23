@@ -139,7 +139,7 @@ def read_folder(data_folder):
     if f.endswith('parquet.gzip'):
         data_file = data_folder + "/" + f
         logging.info('Reading data from:     %s', data_file)
-        data_df = pd.read_parquet(data_file).reset_index(drop=True)
+        data_df = pd.read_parquet(data_file, engine='fastparquet').reset_index(drop=True)
         data_df = data_df.astype(str).replace({"\[":"", "\]":""}, regex=True).astype(float)
         df.append(data_df)
    df_full = pd.concat(df, ignore_index=True)

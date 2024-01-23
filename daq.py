@@ -121,7 +121,7 @@ class DAQApp(QWidget):
             self.ui.textBrowser.append(start_log_html)
             undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
             dxmaf_flag = True
-            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] == 1: #############
+            while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] ==1: #############
                 # Start running dxmaf only when Step 7 is running and only call the start function once.
                 if pydoocs.read(self.sa1_sequence_background_step+'.RUNNING')['data'] == 1:  #################
                     if dxmaf_flag == True:
