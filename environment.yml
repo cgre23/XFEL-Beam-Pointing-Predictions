@@ -17,4 +17,5 @@ dependencies:
   - fastparquet
   - scipy
   - matplotlib
+  - h5py
 prefix: /home/xfeloper/.conda/envs/dxmaf
