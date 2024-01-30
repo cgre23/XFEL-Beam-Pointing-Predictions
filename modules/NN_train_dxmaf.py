@@ -300,7 +300,7 @@ if __name__ == "__main__":
     trigger_times = 0
 
     # Training loop
-    for t in range(100):
+    for t in range(1000):
         epoch = t + 1
         train_loss, mean_train_r2, model, OPTIMIZER = train_model(model, epoch, train_loader, OPTIMIZER)
         current_loss = validation_model(model, valid_loader)

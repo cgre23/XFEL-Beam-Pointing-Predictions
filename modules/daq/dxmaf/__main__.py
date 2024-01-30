@@ -11,7 +11,6 @@ import typing
 from datetime import datetime, timedelta
 from os import PathLike
 from time import sleep
-
 import numpy as np
 import pydoocs
 import signal
@@ -22,6 +21,7 @@ from multiprocessing import Event
 
 from .data_subscriber import DataSubscriber
 from .event_subscriber import EventSubscriber
+
 
 __version__ = "1.1"
 

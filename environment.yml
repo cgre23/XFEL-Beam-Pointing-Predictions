@@ -18,4 +18,5 @@ dependencies:
   - scipy
   - matplotlib
   - h5py
+  - pyyaml
 prefix: /home/xfeloper/.conda/envs/dxmaf
