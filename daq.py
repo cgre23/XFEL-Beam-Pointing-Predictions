@@ -41,7 +41,7 @@ class DAQApp(QWidget):
         self.logstring = []
         self.sa1_sequence_prefix = 'XFEL.UTIL/TASKOMAT/DAQ_SA1'
         self.sa1_sequence_background_step =self.sa1_sequence_prefix +'/STEP007'
-        self.config_file = "modules/daq/docs/datalog_writer_SA1.conf"
+        self.config_path = 'modules/daq/docs/'
         self.data_path = 'modules/daq/runs/'
         self.model_path = 'modules/models/'
         self.ui.sequence_button.setCheckable(True)
@@ -295,7 +295,7 @@ class DAQApp(QWidget):
 
     def write_doocs_data(self):
         """ Write the measurement settings to DOOCS """
-        self.set_config()
+        self.set_config('SA1')
         undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
         und_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS', undulators)
         k_range_sa1 = self.ui.sa1_k.value()/10000
@@ -308,12 +308,22 @@ class DAQApp(QWidget):
         iterations_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/N_ITERATIONS', self.ui.iterations.value())
         self.ui.log.setText('Wrote data to DOOCS')
 
-    def set_config(self):
+    def set_config(self, SASE):
         """ Get measurement time set in the Settings tab and write this number to the DXMAF configuration file  """    
         duration = (self.ui.measurement_time.value()/10)*self.ui.iterations.value()
+        self.config_file = self.config_path + 'datalog_writer_'+SASE+'.conf'
         with open(self.config_file, 'r') as file:
             cur_yaml = yaml.safe_load(file)
             cur_yaml.update({'duration': str(timedelta(seconds=duration)+timedelta(seconds=30))})
+        with open(self.config_file,'w') as yamlfile:
+            yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
+
+    def set_config_predictor(self, SASE, date):
+        """ Get Model Date and write this number to the DXMAF configuration file  """    
+        self.config_file = self.config_path + 'datalog_'+SASE+'.conf'
+        with open(self.config_file, 'r') as file:
+            cur_yaml = yaml.safe_load(file)
+            cur_yaml.update({'run': str(date)})
         with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
@@ -388,26 +398,29 @@ class DAQApp(QWidget):
     def launch_model(self):
         """ Switch a flag in DOOCS to launch the model predictions """
         if 'SA1' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
-            date = self.launch_model_path.split('/')[-1]
+            date = self.launch_model_path.split('/')[-1].replace('-', '_')
             self.ui.model_log.setText('Model update for SA1 data from ' + date + ' requested.')
             if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG')) == 0:
-                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_DATE', date)
+                self.set_config_predictor('SA1', date)
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/CURRENT_MODEL_DATE', date)
                 start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG', 1)
             else:
                 self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
         elif 'SA2' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
-            date = self.launch_model_path.split('/')[-1]
+            date = self.launch_model_path.split('/')[-1].replace('-', '_')
             self.ui.model_log.setText('Model update for SA2 data from ' + date + ' requested.')
             if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_FLAG')) == 0:
-                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_DATE', date)
+                self.set_config_predictor('SA2', date)
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/CURRENT_MODEL_DATE', date)
                 update_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/UPDATE_MODEL_FLAG', 1)
             else:
                 self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
         elif 'SA3' in self.launch_model_path and '-' in self.launch_model_path.split('/')[-1] :
-            date = self.launch_model_path.split('/')[-1]
+            date = self.launch_model_path.split('/')[-1].replace('-', '_')
             self.ui.model_log.setText('Model update for SA3 data from ' + date + ' requested.')
             if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_FLAG')) == 0:
-                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_DATE', date)
+                self.set_config_predictor('SA3', date)
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/CURRENT_MODEL_DATE', date)
                 update_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_FLAG', 1)
             else:
                 self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
