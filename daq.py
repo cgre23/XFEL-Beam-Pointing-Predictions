@@ -90,7 +90,7 @@ class DAQApp(QWidget):
             self.ui.sequence_button.setText("Start DAQ")
             # Force Stop sequence
             try:
-                
+
                 pydoocs.write(self.sa1_sequence_prefix+'/FORCESTOP', 1)
                 stop_log = datetime.now().isoformat(' ', 'seconds')+': Aborted the Taskomat sequence.\n'
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Aborted the Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
@@ -107,8 +107,8 @@ class DAQApp(QWidget):
     def start_dxmaf(self):
         """ Start DXMAF measurement """
         self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"])
-    
-    
+
+
     def start_sequence(self):
         """ Start DAQ measurement """
         try:
@@ -131,7 +131,7 @@ class DAQApp(QWidget):
                     	path = self.data_path + 'SA1/' + dt_string
                     	self.makedirs(path)
                     	self.start_dxmaf()
-                        
+
 
                 log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
                 if log not in self.ui.textBrowser.toPlainText():
@@ -271,7 +271,7 @@ class DAQApp(QWidget):
 
         if 'OFF' in sa2_crls and 'OFF' in sa1_crls:
             self.ui.warning.setText('Warning: One or more focusing lens (CRL) are inserted in SA1 and SA2.')
-        
+
         self.change_crl_icon(sa2_crl1, self.ui.labelStatusFan2_1)
         self.change_crl_icon(sa2_crl2, self.ui.labelStatusFan2_2)
         self.change_crl_icon(sa2_crl3, self.ui.labelStatusFan2_3)
@@ -309,7 +309,7 @@ class DAQApp(QWidget):
         self.ui.log.setText('Wrote data to DOOCS')
 
     def set_config(self, SASE):
-        """ Get measurement time set in the Settings tab and write this number to the DXMAF configuration file  """    
+        """ Get measurement time set in the Settings tab and write this number to the DXMAF configuration file  """
         duration = (self.ui.measurement_time.value()/10)*self.ui.iterations.value()
         self.config_file = self.config_path + 'datalog_writer_'+SASE+'.conf'
         with open(self.config_file, 'r') as file:
@@ -319,11 +319,12 @@ class DAQApp(QWidget):
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
     def set_config_predictor(self, SASE, date):
-        """ Get Model Date and write this number to the DXMAF configuration file  """    
+        """ Get Model Date and write this number to the DXMAF configuration file  """
         self.config_file = self.config_path + 'datalog_'+SASE+'.conf'
         with open(self.config_file, 'r') as file:
             cur_yaml = yaml.safe_load(file)
-            cur_yaml.update({'run': str(date)})
+            print(cur_yaml)
+            cur_yaml['application'][0]['args']['run'] = str(date)
         with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
@@ -339,7 +340,7 @@ class DAQApp(QWidget):
         self.dirModel.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot) # only show up to the folder level
         self.modModel = QFileSystemModel()
         self.modModel.setRootPath(self.model_path)
-        
+
         self.ui.daq.setModel(self.dirModel)
         self.ui.daq.setRootIndex(self.dirModel.index(self.data_path))
         self.ui.daq.setSortingEnabled(True)
@@ -357,7 +358,7 @@ class DAQApp(QWidget):
         """ On clicking the directory in the Model tab, save the path """
         self.ui.trainmodel_button.setEnabled(True)
         self.train_data_path = self.dirModel.fileInfo(index).absoluteFilePath()
-        
+
     def on_clicked_models(self, index):
         """ On clicking the directory in the Model tab, save the path """
         self.ui.launchmodel_button.setEnabled(True)
