@@ -65,7 +65,7 @@ class SyncDataWriter(BufferedDataSubscriber):
         :param timestamp:   Timestamp of the data sample.
         :return:            None
         """
-        if 'XGM' in channel:
+        if 'XGM/XGM' in channel:
                 if len(data) > 0:
                         data = data[0][1]
                 else:
