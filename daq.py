@@ -111,8 +111,9 @@ class DAQApp(QWidget):
 
     def start_sequence(self):
         """ Start DAQ measurement """
-        try:
-            self.set_config() # make sure DXMAF config file has the correct measurement duration
+        x=1
+        if x == 1:
+            self.set_config('SA1') # make sure DXMAF config file has the correct measurement duration
             pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
@@ -147,7 +148,7 @@ class DAQApp(QWidget):
             self.ui.sequence_button.setText("Start DAQ")
             self.logbooktext = ''.join(self.logstring)
             self.logbook_entry(self.logbooktext)
-        except:
+        else:
             print('Not able to start Taskomat sequence.')
             start_log = datetime.now().isoformat(' ', 'seconds')+': Not able to start Taskomat sequence.\n'
             start_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Not able to start Taskomat sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
