@@ -61,8 +61,8 @@ class ModelPredictor(BufferedDataSubscriber):
         print('Number of channels:', len(channels))
         
         # Load data from JSON file 
-        runname = '13_11_9keV_XGMpos'
-        data = json.load( open( model_path+'/'+run+'/prop_'+SASE+'_post_training_'+str(runname)+'.json' ) )
+        runname = run.replace('_', '-')
+        data = json.load( open( model_path+runname+'/metadata_post_training_'+SASE+'-'+str(runname)+'.json' ) )
         f = lambda x: x.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "")
         g = lambda x: x.replace("_X_MEASUREMENT", "_X_PREDICTION").replace("_Y_MEASUREMENT", "_Y_PREDICTION")
         
@@ -91,8 +91,8 @@ class ModelPredictor(BufferedDataSubscriber):
         OUTPUTS = len(self.targets)
         # Load the pre-trained model
         self.model = NN(HIDDEN_NODES, HIDDEN_LAYERS, INPUTS, OUTPUTS)
-        self.model.load_state_dict(torch.load(model_path+f'/{run}/model-{run}-{runname}.pth'))
-        logging.info('Loading model from %s', model_path+f'/{run}/model-{run}-{runname}.pth')
+        self.model.load_state_dict(torch.load(model_path+f'/{runname}/model-{runname}-{SASE}-{runname}.pth'))
+        logging.info('Loading model from %s', model_path+f'/{runname}/model-{runname}-{SASE}-{runname}.pth')
         logging.info('Model loaded: %s', self.model.eval())
         #print(self.dfmin)
         #print(self.dfmax)
@@ -137,7 +137,7 @@ class ModelPredictor(BufferedDataSubscriber):
         :param timestamp:   Timestamp of the data sample.
         :return:            None
         """
-        if 'XGM' in channel:
+        if 'XGM/XGM' in channel:
                 if len(data) > 0:
                         data = data[0][1]
                 else:

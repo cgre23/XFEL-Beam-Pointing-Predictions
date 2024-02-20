@@ -14,3 +14,28 @@ Traceback (most recent call last):
     data = json.load( open( model_path+'/'+run+'/prop_'+SASE+'_post_training_'+str(runname)+'.json' ) )
 FileNotFoundError: [Errno 2] No such file or directory: 'models/SA1//2024_01_29/prop_SA1_post_training_13_11_9keV_XGMpos.json'
 Number of channels: 31
+RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe . Check the section C-API incompatibility at the Troubleshooting ImportError section at https://numpy.org/devdocs/user/troubleshooting-importerror.html#c-api-incompatibility for indications on how to solve this problem .
+Traceback (most recent call last):
+  File "/opt/anaconda/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/anaconda/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/xfeloper.nfs/user/chgrech/xfel-daq-ui/modules/daq/dxmaf/__main__.py", line 15, in <module>
+    import pydoocs
+ImportError: numpy.core.multiarray failed to import
+2024-02-20 08:22:25,659 numexpr.utils INFO: Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+2024-02-20 08:22:25,660 numexpr.utils INFO: NumExpr defaulting to 8 threads.
+2024-02-20 08:22:33,761 root INFO: Loaded modules ('CommandRunner', 'EventConsoleLogger', 'FileMover', 'FileWriter', 'RingFileWriter', 'ImageProcessor', 'ModelPredictor', 'SyncDataWriter', 'ThresholdChecker').
+Traceback (most recent call last):
+  File "/opt/anaconda/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/anaconda/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/xfeloper.nfs/user/chgrech/xfel-daq-ui/modules/daq/dxmaf/__main__.py", line 385, in <module>
+    main()
+  File "/home/xfeloper.nfs/user/chgrech/xfel-daq-ui/modules/daq/dxmaf/__main__.py", line 267, in main
+    module = cls(channels=modulespec['channels'].data, **module_args)
+  File "/home/xfeloper.nfs/user/chgrech/xfel-daq-ui/modules/daq/./dxmaf/extensions/model_predictor.py", line 65, in __init__
+    data = json.load( open( model_path+'/'+run+'/prop_'+SASE+'_post_training_'+str(runname)+'.json' ) )
+FileNotFoundError: [Errno 2] No such file or directory: 'models/SA1//2024_02_20/prop_SA1_post_training_13_11_9keV_XGMpos.json'
+Number of channels: 31
