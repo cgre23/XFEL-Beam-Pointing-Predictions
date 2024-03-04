@@ -72,8 +72,8 @@ class ModelPredictorTD(BufferedDataSubscriber):
         self.targets = list(map(g, data['targets'])) 
         
  
-        norm_min = {k.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "").replace("_X_MEASUREMENT", "_X_PREDICTION").replace("_Y_MEASUREMENT", "_Y_PREDICTION"): v for k, v in data['norm_min'].items()}
-        norm_max = {k.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "").replace("_X_MEASUREMENT", "_X_PREDICTION").replace("_Y_MEASUREMENT", "_Y_PREDICTION"): v for k, v in data['norm_max'].items()}
+        norm_min = {k.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "").replace("_X_MEASUREMENT", "_X_PREDICTION.TD").replace("_Y_MEASUREMENT", "_Y_PREDICTION.TD"): v for k, v in data['norm_min'].items()}
+        norm_max = {k.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "").replace("_X_MEASUREMENT", "_X_PREDICTION.TD").replace("_Y_MEASUREMENT", "_Y_PREDICTION.TD"): v for k, v in data['norm_max'].items()}
 
         self.dfmin = pd.Series(index=norm_min.keys(), data=norm_min)
         self.dfmax = pd.Series(index=norm_max.keys(), data=norm_max)
@@ -108,11 +108,11 @@ class ModelPredictorTD(BufferedDataSubscriber):
         val = {}
         a_dic={}
         output_array = []
-        for idx, iteration in enumerate(self.filter_indices):
+        for idex, iteration in enumerate(self.filter_indices):
             
             for k, v in dataset.items():
                 if 'BPM' in k:
-                    a_dic[k] = v[idx] 
+                    a_dic[k] = v[idex] 
                 else:
                     a_dic[k] = v
 
@@ -122,18 +122,21 @@ class ModelPredictorTD(BufferedDataSubscriber):
         #logging.info("To Model")
         # Test the model and get the prediction
         
-        
             outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
             output_array.append(outp)
             #logging.info(output_array)
-        
-        for idx, target in enumerate(self.targets):
-            val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
-            if doocs_write == 1:
-                pydoocs.write(target, val[target])
-                logging.info('%s, %.3f', target, val[target])
-            else:
-                logging.info('%s, %.3f', target, val[target])
+            if idex == len(self.filter_indices)-1:
+                print(idex)
+                for idx, target in enumerate(self.targets):
+                    arr = [element[0][idx] for element in output_array]
+                    print(target, arr)
+                    val[target] = (numpy.array(arr)*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
+                    #val[target] = (output_array[idx])
+                    if doocs_write == 1:
+                        pydoocs.write(target, val[target])
+                        logging.info('%s, %.3f', target, val[target])
+                    else:
+                        logging.info('%s, %.3f', target, val[target])
         #if self.record_data == True:
         #    self.df_export.loc[sequence_id]=val
 
