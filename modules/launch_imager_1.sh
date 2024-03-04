@@ -1,10 +1,10 @@
 #!/bin/sh
 
-#cd /home/xfeloper/user/chgrech/xfel-daq-ui/modules
-cd /home/grechc/Documents/xfel_pubsub
+cd /home/xfeloper/user/chgrech/xfel-daq-ui/modules
+#cd /home/grechc/Documents/xfel_pubsub
 source venv/bin/activate
 
-#cd modules/daq
+cd daq
 
 python -m dxmaf -c docs/image_processor_SA1.conf
 deactivate

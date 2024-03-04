@@ -11,6 +11,7 @@ import numpy
 import pydoocs
 import torch
 import torch.nn as nn
+import time
 from dxmaf.data_subscriber import BufferedDataSubscriber
 from collections import namedtuple
 
@@ -38,7 +39,6 @@ class SyncDataWriter(BufferedDataSubscriber):
         BufferedDataSubscriber.__init__(self, channels, len(channels))
         self.channels = channels
         print('Number of channels:', len(channels))
-        
 
         export_columns = self.channels.copy()
         self.df_export = pd.DataFrame(columns=export_columns)

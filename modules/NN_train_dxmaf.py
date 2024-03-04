@@ -296,7 +296,7 @@ if __name__ == "__main__":
 
     # Early stopping variables
     last_loss = 100
-    patience = 5
+    patience = 4
     trigger_times = 0
 
     # Training loop
@@ -305,7 +305,7 @@ if __name__ == "__main__":
         train_loss, mean_train_r2, model, OPTIMIZER = train_model(model, epoch, train_loader, OPTIMIZER)
         current_loss = validation_model(model, valid_loader)
 
-        if current_loss > last_loss and epoch > 30:
+        if current_loss > last_loss and epoch > 20:
             trigger_times += 1
             logging.info('Trigger Times: %d', trigger_times)
 

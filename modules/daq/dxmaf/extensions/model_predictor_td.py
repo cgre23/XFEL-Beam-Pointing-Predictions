@@ -58,13 +58,14 @@ class ModelPredictorTD(BufferedDataSubscriber):
         BufferedDataSubscriber.__init__(self, channels, len(channels))
         self.channels = channels
         self.record_data = record_data
+        self.SASE = SASE
         print('Number of channels:', len(channels))
         
         # Load data from JSON file 
         runname = run.replace('_', '-')
         data = json.load( open( model_path+runname+'/metadata_post_training_'+SASE+'-'+str(runname)+'.json' ) )
         f = lambda x: x.replace("/XFEL", "XFEL").replace("/X.TD", "/X."+SASE).replace("/Y.TD", "/Y."+SASE).replace("/Value", "")
-        g = lambda x: x.replace("_X_MEASUREMENT", "_X_PREDICTION").replace("_Y_MEASUREMENT", "_Y_PREDICTION")
+        g = lambda x: x.replace("_X_MEASUREMENT", "_X_PREDICTION.TD").replace("_Y_MEASUREMENT", "_Y_PREDICTION.TD")
         
         # Extract features and targets from the data. Transform DOOCS channel names.
         self.features = list(map(f, data['features']))
@@ -105,21 +106,34 @@ class ModelPredictorTD(BufferedDataSubscriber):
         
     def process_complete(self, dataset: Mapping[str, float], sequence_id: int) -> None:
         val = {}
-        df = pd.DataFrame(dataset, index = [0])
-        #df = df[self.features]
-        #normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
+        a_dic={}
+        output_array = []
+        for idx, iteration in enumerate(self.filter_indices):
+            
+            for k, v in dataset.items():
+                if 'BPM' in k:
+                    a_dic[k] = v[idx] 
+                else:
+                    a_dic[k] = v
+
+            df = pd.DataFrame(a_dic, index = [0])
+            df = df[self.features]
+            normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
         #logging.info("To Model")
         # Test the model and get the prediction
-        #outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
-        #logging.info(outp)
         
-        #for idx, target in enumerate(self.targets):
-        #        val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
-        #        if doocs_write == 1:
-        #        	pydoocs.write(target, val[target])
-                	#logging.info('%s, %.3f', target, val[target])
-        #        else:
-        #        	logging.info('%s, %.3f', target, val[target])
+        
+            outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
+            output_array.append(outp)
+            #logging.info(output_array)
+        
+        for idx, target in enumerate(self.targets):
+            val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
+            if doocs_write == 1:
+                pydoocs.write(target, val[target])
+                logging.info('%s, %.3f', target, val[target])
+            else:
+                logging.info('%s, %.3f', target, val[target])
         #if self.record_data == True:
         #    self.df_export.loc[sequence_id]=val
 
@@ -142,6 +156,12 @@ class ModelPredictorTD(BufferedDataSubscriber):
                         data = data[0][1]
                 else:
                         data = 0
+                        
+        # Filter by BUNCHPATTERN destination                
+        if 'BPM' in channel:
+            channel = channel.replace("/X.TD", "/X."+self.SASE).replace("/Y.TD", "/Y."+self.SASE)
+            self.filter_indices = [2, 4, 50]
+            data = numpy.take(data, self.filter_indices)
         
         highest_sequence_id = max([*self.buffer.keys(), sequence_id])
         if sequence_id < (highest_sequence_id - self.max_buffer_size):
