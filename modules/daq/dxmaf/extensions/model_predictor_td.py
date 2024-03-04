@@ -40,7 +40,7 @@ class NN(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-class ModelPredictor(BufferedDataSubscriber):
+class ModelPredictorTD(BufferedDataSubscriber):
     """
     DxMAF module that writes data from subscribed channels to numpy and metadata files.
 
@@ -107,21 +107,21 @@ class ModelPredictor(BufferedDataSubscriber):
         val = {}
         df = pd.DataFrame(dataset, index = [0])
         #df = df[self.features]
-        normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
+        #normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
         #logging.info("To Model")
         # Test the model and get the prediction
-        outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
+        #outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
         #logging.info(outp)
         
-        for idx, target in enumerate(self.targets):
-                val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
-                if doocs_write == 1:
-                	pydoocs.write(target, val[target])
+        #for idx, target in enumerate(self.targets):
+        #        val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
+        #        if doocs_write == 1:
+        #        	pydoocs.write(target, val[target])
                 	#logging.info('%s, %.3f', target, val[target])
-                else:
-                	logging.info('%s, %.3f', target, val[target])
-        if self.record_data == True:
-            self.df_export.loc[sequence_id]=val
+        #        else:
+        #        	logging.info('%s, %.3f', target, val[target])
+        #if self.record_data == True:
+        #    self.df_export.loc[sequence_id]=val
 
     def process(self, channel: str, data: int, sequence_id: int, timestamp: float) -> None:
         """
@@ -176,4 +176,4 @@ class ModelPredictor(BufferedDataSubscriber):
 
 
 # Export DxMAF modules
-DXMAF_MODULES = (ModelPredictor,)
+DXMAF_MODULES = (ModelPredictorTD,)
