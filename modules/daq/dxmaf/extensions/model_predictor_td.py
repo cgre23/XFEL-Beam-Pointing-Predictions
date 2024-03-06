@@ -130,7 +130,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
                 for idx, target in enumerate(self.targets):
                     arr = [element[0][idx] for element in output_array]
                     print(target, arr)
-                    val[target] = (numpy.array(arr)*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
+                    val[target] = ((numpy.array(arr)*(self.dfmax[target]-self.dfmin[target]))+self.dfmin[target])
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
                         pydoocs.write(target, val[target])
