@@ -12,6 +12,7 @@ import pydoocs
 import torch
 import torch.nn as nn
 from dxmaf.data_subscriber import BufferedDataSubscriber
+from dxmaf.DaqTimingPattern import *
 from collections import namedtuple
 
 logger = logging.getLogger(__name__)
@@ -43,8 +44,6 @@ class NN(nn.Module):
 class ModelPredictorTD(BufferedDataSubscriber):
     """
     DxMAF module that writes data from subscribed channels to numpy and metadata files.
-
-    # TODO: Add file system free space check.
     """
 
     def __init__(self, channels: Set[str], SASE: str, model_path: str, run: str, record_data: Optional[bool] = False, output_file: Optional[str] = None,):
@@ -140,6 +139,27 @@ class ModelPredictorTD(BufferedDataSubscriber):
         #if self.record_data == True:
         #    self.df_export.loc[sequence_id]=val
 
+    def bunch_pattern_filter(self):
+        """
+        Read the bunch pattern and get the indices by destination for BPMs
+
+        :return:    List of indices for the relevant destination (SA1/SA2/SA3)
+        """
+        pattern = pydoocs.read('XFEL.DIAG/TIMER.CENTRAL/MASTER/BUNCH_PATTERN')['data']
+        data = pattern[::2] 
+        data = data[:2708]
+        data = [decode_destination(unpack_timing_word(d)) for d in data]
+        destination_indices = {
+                    # see https://confluence.desy.de/display/DOOCS/DOOCS+Lectures+and+Tutorials?preview=%2F185871363%2F211286337%2FTiming+System+%26+Bunch+Pattern.pdf
+                    # contains all bunches with destination T4D that are not affected by a soft kick in TL
+                    'SA1' : np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] != SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0],
+                    # contains all bunches with destination T5D.
+                    'SA2' : np.where([dest_[0] == Destination['xfel'].T5D for dest_ in data])[0],
+                    # contains all bunches with destination T4D that are affected by a soft kick in TL.
+                    'SA3' : np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] == SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0]
+        }
+        return list(destination_indices[self.SASE])
+
     def process(self, channel: str, data: int, sequence_id: int, timestamp: float) -> None:
         """
         Process data from a channel previously subscribed to.
@@ -163,7 +183,8 @@ class ModelPredictorTD(BufferedDataSubscriber):
         # Filter by BUNCHPATTERN destination                
         if 'BPM' in channel:
             channel = channel.replace("/X.TD", "/X."+self.SASE).replace("/Y.TD", "/Y."+self.SASE)
-            self.filter_indices = [2, 4, 50]
+            self.filter_indices = self.bunch_pattern_filter()
+            print(self.filter_indices)
             data = numpy.take(data, self.filter_indices)
         
         highest_sequence_id = max([*self.buffer.keys(), sequence_id])
