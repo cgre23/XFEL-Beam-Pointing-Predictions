@@ -7,7 +7,7 @@
 # from mcxdaqtools.DaqTimingPatter import parse_timing_pattern_packed
 # 
 # with h5py.File('sample.hdf5', 'r') as file:
-#   bunch_pattern = unpack_timing_pattern(file['XFEL.DIAG/TIMINGINFO/TIME1.BUNCH_PATTERN/Value'][0])
+    #   bunch_pattern = unpack_timing_pattern(file['XFEL.DIAG/TIMINGINFO/TIME1.BUNCH_PATTERN/Value'][0])
 #   plt.figure()
 #   plt.plot(bunch_pattern.destination[::4])
 #   plt.yticks([e.value for e in DestinationXfel], [e.name for e in DestinationXfel])
@@ -105,9 +105,13 @@ SeedUserLaserTriggers = {'xfel': SeedUserLaserTriggersXfel, 'flash': SeedUserLas
 
 @unique
 class SpecialFlagsXfel(IntFlag):
+    NONE = 0
     SPECIAL_REP_RATE = 1
+    RESERVED_1 = 2
+    RESERVED_2 = 4
+    RESERVED_3 = 8
     BEAM_DISTRIBUTION_KICKER = 16
-    TLD_SOFT_KICK = 32
+    TLD_SOFT_KICK = 32 # True -> 
     WIRE_SCANNER = 64
     TDS_BC_2 = 128
     TDS_BC_1 = 256
@@ -116,6 +120,7 @@ class SpecialFlagsXfel(IntFlag):
 
 @unique
 class SpecialFlagsFlash(IntFlag):
+    NONE = 0
     SPECIAL_REP_RATE = 1
     PHOTON_MIRROR = 32
     LOLA = 128
@@ -179,18 +184,28 @@ def unpack_timing_pattern(pattern):
 
     return pattern_unpacked
 
-
 def decode_timing_pattern(value, linac=LINACS[0]):
-    raise NotImplementedError('TODO')
+    if len(value) != 5:
+        raise TypeError(f"input coding word has wrong length")
+    if not isinstance(linac, str) or linac.lower() not in LINACS:
+        raise TypeError(f"`mode` must be either of {LINACS}")
+    
+    return (BunchChargeSetting(value[4]),\
+            InjectorLaserTriggers[linac](value[3]),\
+            None,\
+            Destination[linac](value[1]),\
+            SpecialFlags[linac](value[0]))
+    '''
+    return (BunchChargeSetting(value[0]),\
+            InjectorLaserTriggers[linac](value[1]),\
+            SeedUserLaserTriggers[linac](value[2]),\
+            Destination[linac](value[3]),\
+            SpecialFlags[linac](value[4]))
+    '''
 
-    # if not isinstance(linac, str) or linac.lower() not in LINACS:
-    #     raise TypeError(f"`mode` must be either of {LINACS}")
-    # TODO
-    # patterns_unpacked.flat[i]['bunch_charge_setting'] = BunchChargeSetting(pattern.bunch_charge_setting)
-    # patterns_unpacked.flat[i]['injector_laser_triggers'] = InjectorLaserTriggers[linac](
-    #     pattern.injector_laser_triggers)
-    # patterns_unpacked.flat[i]['seed_user_laser_triggers'] = SeedUserLaserTriggers[linac](
-    #     pattern.seed_user_laser_triggers)
-    # patterns_unpacked.flat[i]['destination'] = Destination[linac](pattern.destination)
-    # patterns_unpacked.flat[i]['special_flags'] = SpecialFlags[linac](pattern.special_flags)
-
+def decode_destination(value, linac='xfel'):
+    if len(value) != 5:
+        raise TypeError(f"input coding word has wrong length")
+    if not isinstance(linac, str) or linac.lower() not in LINACS:
+        raise TypeError(f"`mode` must be either of {LINACS}")
+    return Destination[linac](value[3]),SpecialFlags[linac](value[4])
