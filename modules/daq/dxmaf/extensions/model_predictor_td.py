@@ -105,6 +105,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
         
     def process_complete(self, dataset: Mapping[str, float], sequence_id: int) -> None:
         val = {}
+        padded_val = {}
         a_dic={}
         output_array = []
         for idex, iteration in enumerate(self.filter_indices):
@@ -130,9 +131,12 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     arr = [element[0][idx] for element in output_array]
                     print(target, arr)
                     val[target] = ((numpy.array(arr)*(self.dfmax[target]-self.dfmin[target]))+self.dfmin[target])
+                    pad_width=400-len(self.filter_indices)
+                    padded_val[target] = np.pad(val[target], (0, pad_width), 'constant')
+                    print(padded_val[target])
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
-                        pydoocs.write(target, val[target])
+                        pydoocs.write(target, padded_val[target])
                         logging.info('%s, %.3f', target, val[target])
                     else:
                         logging.info('%s, %.3f', target, val[target])
@@ -184,7 +188,6 @@ class ModelPredictorTD(BufferedDataSubscriber):
         if 'BPM' in channel:
             channel = channel.replace("/X.TD", "/X."+self.SASE).replace("/Y.TD", "/Y."+self.SASE)
             self.filter_indices = self.bunch_pattern_filter()
-            print(self.filter_indices)
             data = numpy.take(data, self.filter_indices)
         
         highest_sequence_id = max([*self.buffer.keys(), sequence_id])
