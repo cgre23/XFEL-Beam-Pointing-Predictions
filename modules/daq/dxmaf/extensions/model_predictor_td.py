@@ -126,7 +126,6 @@ class ModelPredictorTD(BufferedDataSubscriber):
             output_array.append(outp)
             #logging.info(output_array)
             if idex == len(self.filter_indices)-1:
-                print(idex)
                 for idx, target in enumerate(self.targets):
                     arr = [element[0][idx] for element in output_array]
                     print(target, arr)

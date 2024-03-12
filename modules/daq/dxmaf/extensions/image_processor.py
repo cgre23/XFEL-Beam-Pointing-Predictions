@@ -84,10 +84,10 @@ class ImageProcessor(DataSubscriber):
 
                     # SRA condition
                     if beamsize_x > 100:
-                        beamsize_x = 50
+                        beamsize_x = 70
                         sigma = 3
                     if beamsize_y > 100:
-                        beamsize_y = 40
+                        beamsize_y = 50
                         sigma = 3
 
                     self.roi = [com_y - beamsize_y * self.sigma, com_y + beamsize_y * self.sigma,
