@@ -128,15 +128,15 @@ class ModelPredictorTD(BufferedDataSubscriber):
             if idex == len(self.filter_indices)-1:
                 for idx, target in enumerate(self.targets):
                     arr = [element[0][idx] for element in output_array]
-                    print(target, arr)
+                    #print(target, arr[0], self.dfmax[target], self.dfmin[target])
                     val[target] = ((numpy.array(arr)*(self.dfmax[target]-self.dfmin[target]))+self.dfmin[target])
                     pad_width=400-len(self.filter_indices)
                     padded_val[target] = np.pad(val[target], (0, pad_width), 'constant')
-                    print(padded_val[target])
+                    #print(padded_val[target])
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
                         pydoocs.write(target, padded_val[target])
-                        logging.info('%s, %.3f', target, val[target])
+                        #logging.info('%s, %.3f', target, val[target][0])
                     else:
                         logging.info('%s, %.3f', target, val[target])
         #if self.record_data == True:
@@ -187,7 +187,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
         if 'BPM' in channel:
             channel = channel.replace("/X.TD", "/X."+self.SASE).replace("/Y.TD", "/Y."+self.SASE)
             self.filter_indices = self.bunch_pattern_filter()
-            data = numpy.take(data, self.filter_indices)
+            data = numpy.take(data[:,1], self.filter_indices)
         
         highest_sequence_id = max([*self.buffer.keys(), sequence_id])
         if sequence_id < (highest_sequence_id - self.max_buffer_size):
