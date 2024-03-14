@@ -1032,13 +1032,6 @@
        <item row="1" column="0">
         <widget class="QTreeView" name="daq"/>
        </item>
-       <item row="4" column="0" colspan="3">
-        <widget class="QLabel" name="model_log">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QPushButton" name="trainmodel_button">
          <property name="text">
@@ -1126,6 +1119,20 @@
            <string>Restart Training Server</string>
           </property>
          </widget>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QLabel" name="model_log">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QPushButton" name="retrainmodel_button">
+         <property name="text">
+          <string>Acquire SA1 data, train model and update model</string>
+         </property>
         </widget>
        </item>
       </layout>

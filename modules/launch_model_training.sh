@@ -10,4 +10,5 @@ export PYTHONPATH=/home/xfeloper.nfs/user/chgrech/xfel-daq-ui/modules/venv/lib/p
 date=`python pydoocs_read_date_training.py "$SASE"`
 mkdir -p -m777 "models/$SASE/$date"
 python3 NN_train_dxmaf.py --SASE $SASE --run_name $date --properties "models/$SASE/" --source "daq/runs/$SASE/" --label "$SASE-$date"
+python3 pydoocs_write_training_status.py "$SASE"
 deactivate

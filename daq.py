@@ -54,6 +54,7 @@ class DAQApp(QWidget):
         self.ui.restart_image_button.clicked.connect(self.restart_image_analysis_server)
         self.ui.restart_prediction_button.clicked.connect(self.restart_model_prediction_server)
         self.ui.restart_training_button.clicked.connect(self.restart_model_training_server)
+        self.ui.retrainmodel_button.clicked.connect(self.retrain_model_start)
         self.ui.measurement_time.valueChanged.connect(self.update_estimated_time)
         self.ui.iterations.valueChanged.connect(self.update_estimated_time)
         self.ui.warning.setStyleSheet("""QLabel { color: red;}""")
@@ -440,6 +441,30 @@ class DAQApp(QWidget):
     def restart_model_prediction_server(self):
         """ Restart model prediction server """
         restart_flag = self.simple_doocs_write('XFEL.UTIL/PY_BEAM_POINTING_PREDICTION/XFELML3._SVR/SVR.STOP_SVR', 1)
+
+    def retrain_model_start(self):
+        self.ui.retrainmodel_button.setEnabled(False)
+        t = threading.Thread(target=self.retrain_model)
+        t.daemon = True
+        t.start()
+
+    def retrain_model(self):
+        self.config_file = self.config_path + 'datalog_writer_SA1.conf'
+        with open(self.config_file, 'r') as file:
+            cur_yaml = yaml.safe_load(file)
+            cur_yaml.update({'duration': str(timedelta(seconds=90)+timedelta(seconds=30))})
+        with open(self.config_file,'w') as yamlfile:
+            yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
+        now = datetime.now()
+        dt_string = now.strftime("%Y-%m-%d")
+        path = self.data_path + 'SA1/retrain_'+dt_string
+        self.makedirs(path)
+        self.start_dxmaf()
+        time.sleep(120)
+        self.train_data_path = path
+        self.train_model()
+        self.ui.retrainmodel_button.setEnabled(True)
+
 
     def makedirs(self, dest):
         """ Create a directory if it does not exist """
