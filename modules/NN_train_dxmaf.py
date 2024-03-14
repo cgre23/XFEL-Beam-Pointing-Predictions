@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import pydoocs
 # Set up logging and suppress warnings
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 warnings.filterwarnings("ignore")
@@ -235,7 +236,7 @@ if __name__ == "__main__":
     inputs_outputs = features_pre + targets_pre
     
     # Split the data into training, validation, and testing sets
-    traindf, validdf, testdf = np.split(df[inputs_outputs], [int(.75*len(df)), int(.85*len(df))])
+    traindf, validdf = np.split(df[inputs_outputs], [int(.8*len(df))])
     traindf = traindf.astype(float).dropna()
     
     # Calculate normalization min and max values for the data
@@ -373,6 +374,9 @@ if __name__ == "__main__":
         logging.info('JSON property file saved to: %s', filename_pt)
     except:
         Fatal('Trouble saving model metadata to file.')
+        
+    pydoocs.write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.'+SASE_no+'/TRAIN_MODEL_STATUS', 'FINISHED')
+    
         
         
  
