@@ -459,10 +459,10 @@ class DAQApp(QWidget):
         dt_string = now.strftime("%Y-%m-%d")
         path = self.data_path + 'SA1/retrain_'+dt_string
         self.makedirs(path)
-        self.start_dxmaf()
-        time.sleep(120)
-        self.train_data_path = path
-        self.train_model()
+        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1_retrain.sh"])
+        #time.sleep(120)
+        #self.train_data_path = path
+        #self.train_model()
         self.ui.retrainmodel_button.setEnabled(True)
 
 
