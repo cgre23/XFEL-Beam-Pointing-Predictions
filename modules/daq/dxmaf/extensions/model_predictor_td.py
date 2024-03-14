@@ -111,7 +111,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
         for idex, iteration in enumerate(self.filter_indices):
             
             for k, v in dataset.items():
-                if 'BPM' in k:
+                if 'BPM' in k and self.filter_indices != []:
                     a_dic[k] = v[idex] 
                 else:
                     a_dic[k] = v
