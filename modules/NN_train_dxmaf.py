@@ -205,7 +205,7 @@ if __name__ == "__main__":
   
     # Read the data and prepare features and targets
     try:
-        df = read_folder(source+run+'/retrain')
+        df = read_folder(source+run)
     except FileNotFoundError:
         Fatal('Trouble loading files.')
     
@@ -295,7 +295,7 @@ if __name__ == "__main__":
 
     # Training loop
     for epoch in range(1000):
-        train_loss, mean_train_r2 = train_model(model, epoch + 1, train_loader, optimizer, log_interval)
+        train_loss, mean_train_r2 = train_model(model, epoch + 1, train_loader, OPTIMIZER, log_interval)
         current_loss = validation_model(model, valid_loader)
 
         if current_loss > last_loss and epoch > 20:

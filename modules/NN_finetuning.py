@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from scipy.stats import pearsonr
 from datetime import datetime
 import logging
+import warnings
 import yaml
 import pydoocs
 # Set up logging and suppress warnings
@@ -188,7 +189,7 @@ if __name__ == "__main__":
     
     # Record the start time for training
     start_time = datetime.now()  
-    logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run+'/retrain')
+    logging.info('Finetuning a NN model for %s data from the folder %s', SASE_no, source+run+'/retrain')
     
     data = {}
     
@@ -279,7 +280,7 @@ if __name__ == "__main__":
 
     # Training loop
     for epoch in range(300):
-        train_loss, mean_train_r2 = train_model(model, epoch + 1, train_loader, optimizer, log_interval)
+        train_loss, mean_train_r2 = train_model(model, epoch + 1, train_loader, OPTIMIZER, log_interval)
         current_loss = validation_model(model, valid_loader)
 
         if current_loss > last_loss and epoch > 5:

@@ -1,6 +1,6 @@
 batch_size: 64
 fraction_training_data: 60
-hidden_layers: 1
+hidden_layers: 2
 hidden_nodes: 128
 momentum: 0.8
 learning_rate: 0.1
