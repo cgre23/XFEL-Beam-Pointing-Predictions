@@ -456,8 +456,8 @@ class DAQApp(QWidget):
         with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
         now = datetime.now()
-        dt_string = now.strftime("%Y-%m-%d")
-        path = self.data_path + 'SA1/retrain_'+dt_string
+        dt_string = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/CURRENT_MODEL_DATE', date).replace('_', '-')
+        path = self.data_path + 'SA1/'+dt_string+'/retrain'
         self.makedirs(path)
         self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1_retrain.sh"])
         #time.sleep(120)

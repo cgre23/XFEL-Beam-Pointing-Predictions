@@ -2,18 +2,17 @@ import os
 import sys
 import getopt
 import json
-from scipy.stats import pearsonr
-import pandas as pd
-import warnings
-import logging
-from datetime import datetime
-import yaml
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+from scipy.stats import pearsonr
+from datetime import datetime
+import logging
+import yaml
 import pydoocs
 # Set up logging and suppress warnings
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
@@ -74,31 +73,25 @@ def Fatal(msg):
 def rmse(predictions, targets):
     return np.sqrt(((predictions - targets) ** 2).mean())
 
-
 # Function to train the neural network model for an epoch
 def train_model(model, epoch, train_loader, optimizer, log_interval):
     train_losses = []
     score = []
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # Set the network to training mode
     model.train()
 
     for batch_idx, (data, target) in enumerate(train_loader):
-        # Reset gradients
         optimizer.zero_grad()
-        # Evaluate network with data
         output = model(data.to(device))
-        # Compute loss and derivative
         loss = F.mse_loss(output.to(device), target.to(device))
         loss.backward()
-        # Step the optimizer
         optimizer.step()
 
         out = output.detach().cpu().numpy()
         targets = target.detach().cpu().numpy()
         r2 = pearsonr(targets.flatten(), out.flatten())[0] ** 2
         score.append(r2)
-        # Print out results and save to file
+
         if batch_idx % log_interval == 0:
             loss_n, current = loss.item(), batch_idx * len(data)
             logging.info(f"epoch: {epoch} loss: {loss_n:.5f} r2 {r2:.5f} [{current:>5d}/{len(train_loader.dataset):>5d}]")
@@ -119,6 +112,7 @@ def validation_model(model, valid_loader):
 
     valid_loss /= len(valid_loader.dataset)
     return valid_loss
+
 
 def read_folder(data_folder):
    files = os.listdir(data_folder)
@@ -194,7 +188,7 @@ if __name__ == "__main__":
     
     # Record the start time for training
     start_time = datetime.now()  
-    logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run)
+    logging.info('Training a NN model for %s data from the folder %s', SASE_no, source+run+'/retrain')
     
     data = {}
     
@@ -204,44 +198,48 @@ if __name__ == "__main__":
     log_interval = 1000
   
     # Read the data and prepare features and targets
+    
+    #with open(properties + "channels_" + SASE_no + ".yml", 'r') as file:
+    #    channel_list = yaml.load(file, Loader=yaml.Loader)
+            
+    metadata_file = properties+run+'/metadata_post_training_'+label+'.json'
+    filename_pt_retrain = properties+run+'/retrain/metadata_post_training_'+label+'.json'
     try:
         df = read_folder(source+run+'/retrain')
+
     except FileNotFoundError:
         Fatal('Trouble loading files.')
-    
-    with open(properties + "channels_" + SASE_no + ".yml", 'r') as file:
-        channel_list = yaml.load(file, Loader=yaml.Loader)
-        
-    #print(channel_list)
-    
-    filename_pt = properties+run+'/metadata_post_training_'+label+'.json'
+
+    try:
+        data = json.load(open(metadata_file))
+        features = data['features']
+        targets = data['targets']
+        HIDDEN_NODES = data['hidden_nodes']
+        HIDDEN_LAYERS = data['hidden_layers']
+        INPUTS = data['no_inputs']
+        OUTPUTS = len(targets)
+        LEARNING_RATE = data['learning_rate'] / 2
+        BATCH_SIZE = data['batch_size']
+        MOMENTUM = float(data['momentum'])
+    except FileNotFoundError:
+        Fatal('Metadata file not found.')
+
     # Some data preprocessing steps...
     # Remove columns with a zero standard deviation. Otherwise an issue could be caused with normalization
     df=df.loc[:, df.std() > 0]
 
-    # Define the features and targets from the channel list, pre-normalization
-    features_pre = list(set(channel_list['inputs']).intersection(df.columns.tolist()))
-    targets_pre = list(set(channel_list['outputs']).intersection(df.columns.tolist()))
-    #logging.info('Training with %d percent of the data', label*100)
-    inputs_outputs = features_pre + targets_pre
+    inputs_outputs = data['inputs_outputs']
+    df = df[inputs_outputs]
+    dfmin = pd.Series(index=list(data['norm_min'].keys()), data=data['norm_min'])
+    dfmax = pd.Series(index=list(data['norm_max'].keys()), data=data['norm_max'])
     
     # Split the data into training, validation, and testing sets
-    traindf, validdf = np.split(df[inputs_outputs], [int(.8*len(df))])
+    traindf, validdf = np.split(df[inputs_outputs], [int(.85*len(df))])
     traindf = traindf.astype(float).dropna()
     
-    # Calculate normalization min and max values for the data
-    min_values = (traindf.min() - traindf.std()).tolist()
-    max_values = (traindf.max() + traindf.std()).tolist()
-    
-    # Convert min and max values to dictionaries
-    min_dict = {traindf.columns[i]: min_values[i] for i in range(len(traindf.columns.tolist()))}
-    max_dict = {traindf.columns[i]: max_values[i] for i in range(len(traindf.columns.tolist()))}
-    data['norm_min'] = min_dict
-    data['norm_max'] = max_dict
-
     # Normalize the training and validation data
-    norm_df = (traindf - (traindf.min() - traindf.std())) / ((traindf.max() + traindf.std()) - (traindf.min() - traindf.std()))
-    normvalid_df = (validdf - (traindf.min() - traindf.std())) / ((traindf.max() + traindf.std()) - (traindf.min() - traindf.std()))
+    norm_df=((traindf-dfmin)/(dfmax-dfmin))
+    normvalid_df=((validdf-dfmin)/(dfmax-dfmin))
     norm_df = norm_df.astype(float).dropna().dropna(axis=1, how='all')
     normvalid_df = normvalid_df.astype(float).dropna().dropna(axis=1, how='all')
     logging.info('Number of training samples: %d', len(norm_df))
@@ -249,32 +247,20 @@ if __name__ == "__main__":
     # Set the device for training (GPU if available, otherwise CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # Define the features and targets from the channel list after normalization, some columns may be NaN or empty so they have to be dropped
-    features = list(set(norm_df.columns.tolist()).intersection(features_pre))
-    targets = list(set(norm_df.columns.tolist()).intersection(targets_pre))
- 
+
     if features == [] or targets == []:
         Fatal('Error: Empty features or targets list.')
-        
-    #logging.info('Training with %d percent of the data', label*100)
-    inputs_outputs = features + targets
-    INPUTS = len(features)
-    OUTPUTS = len(targets)
-    data['no_inputs'] = INPUTS
-    data['features'] = features
-    data['targets'] = targets
-    data['inputs_outputs'] = inputs_outputs
+         
     
-    # Set hyperparameters for training
-    LEARNING_RATE = channel_list['learning_rate']
-    HIDDEN_LAYERS = channel_list['hidden_layers']
-    HIDDEN_NODES = channel_list['hidden_nodes']
-    BATCH_SIZE = channel_list['batch_size']
-    MOMENTUM = float(channel_list['momentum'])
+    # Get neural network architecture details from the data
     logging.info('Training NN: Learning rate: %s Hidden layers: %s Hidden nodes: %s Batch size: %s', LEARNING_RATE, HIDDEN_LAYERS, HIDDEN_NODES, BATCH_SIZE)
 
     # Create the neural network model
     model = NN(HIDDEN_NODES, HIDDEN_LAYERS, INPUTS, OUTPUTS)
+    try:
+        model.load_state_dict(torch.load(properties+run+f'/model-{run}-{label}.pth'))
+    except:
+        Fatal('Trouble loading model.')
     model = model.to(device)
     OPTIMIZER = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM)
 
@@ -291,11 +277,11 @@ if __name__ == "__main__":
     trigger_times = 0
 
     # Training loop
-    for epoch in range(1000):
+    for epoch in range(300):
         train_loss, mean_train_r2 = train_model(model, epoch + 1, train_loader, optimizer, log_interval)
         current_loss = validation_model(model, valid_loader)
 
-        if current_loss > last_loss and epoch > 20:
+        if current_loss > last_loss and epoch > 5:
             trigger_times += 1
             logging.info('Trigger Times: %d', trigger_times)
 
@@ -307,27 +293,24 @@ if __name__ == "__main__":
         last_loss = current_loss
         
     # Save the trained model and optimizer
-    if os.path.exists(properties + run + f'/model-{run}-{label}.pth'):
-        os.remove(properties + run + f'/model-{run}-{label}.pth')        
-    torch.save(model.state_dict(), properties + run + f'/model-{run}-{label}.pth')
+    if os.path.exists(properties + run + f'/retrain/model-{run}-{label}.pth'):
+        os.remove(properties + run + f'/retrain/model-{run}-{label}.pth')        
+    torch.save(model.state_dict(), properties + run + f'/retrain/model-{run}-{label}.pth')
     
-    if os.path.exists(properties + run + f'/{run}_optimizer.pth'):
-        os.remove(properties + run + f'/{run}_optimizer.pth')
-    torch.save(OPTIMIZER.state_dict(), properties + run + f'/{run}_optimizer.pth')
+    if os.path.exists(properties + run + f'/retrain/{run}_optimizer.pth'):
+        os.remove(properties + run + f'/retrain/{run}_optimizer.pth')
+    torch.save(OPTIMIZER.state_dict(), properties + run + f'/retrain/{run}_optimizer.pth')
 
     # Training process is complete. Save the results in JSON file.
-    logging.info('Training process has finished with R2 %.4f. Saving trained model.', mean_train_r2)
+    logging.info('Retraining process has finished with R2 %.4f. Saving retrained model.', mean_train_r2)
     
     # Evaluate the model on the validation dataset
-    test_losses, score = [], []
-    total_score = 0
+    score = []
     model.eval()
-    test_loss, correct = 0, 0
     output_l = []
     with torch.no_grad():
         for dataset, target in valid_loader:
             output = model(dataset.to(device))
-            test_loss += F.mse_loss(output.to(device), target.to(device), reduction='sum').item()
             pred = output.data.max(1, keepdim=True)[1]
             out = output.detach().cpu().numpy()
             output_l.append(out)
@@ -335,7 +318,6 @@ if __name__ == "__main__":
             valid_r2 = pearsonr(targets.flatten(), out.flatten())[0] ** 2
             score.append(valid_r2)
     mean_valid_r2 = np.mean(score)
-    logging.info('Evaluation with validation dataset: %.4f', mean_valid_r2)
     
     # Serialize data into file:
     stop_time = datetime.now()    
@@ -356,12 +338,12 @@ if __name__ == "__main__":
     data['stop_time'] = str(stop_time)
     
     # Serialize data into file:  
-    if os.path.exists(filename_pt):
-        os.remove(filename_pt)
+    if os.path.exists(filename_pt_retrain):
+        os.remove(filename_pt_retrain)
     
     try:
-        json.dump(data, open(filename_pt, 'w'), default=str)
-        logging.info('JSON property file saved to: %s', filename_pt)
+        json.dump(data, open(filename_pt_retrain, 'w'), default=str)
+        logging.info('JSON property file saved to: %s', filename_pt_retrain)
     except:
         Fatal('Trouble saving model metadata to file.')
         
