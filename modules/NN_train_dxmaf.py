@@ -255,6 +255,9 @@ if __name__ == "__main__":
  
     if features == [] or targets == []:
         Fatal('Error: Empty features or targets list.')
+
+    if df[targets].empty:
+        Fatal('No imager data measured')
         
     #logging.info('Training with %d percent of the data', label*100)
     inputs_outputs = features + targets
@@ -319,18 +322,13 @@ if __name__ == "__main__":
     logging.info('Training process has finished with R2 %.4f. Saving trained model.', mean_train_r2)
     
     # Evaluate the model on the validation dataset
-    test_losses, score = [], []
-    total_score = 0
+    score = []
     model.eval()
-    test_loss, correct = 0, 0
-    output_l = []
     with torch.no_grad():
         for dataset, target in valid_loader:
             output = model(dataset.to(device))
-            test_loss += F.mse_loss(output.to(device), target.to(device), reduction='sum').item()
             pred = output.data.max(1, keepdim=True)[1]
             out = output.detach().cpu().numpy()
-            output_l.append(out)
             targets = target.detach().cpu().numpy()
             valid_r2 = pearsonr(targets.flatten(), out.flatten())[0] ** 2
             score.append(valid_r2)

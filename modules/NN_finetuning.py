@@ -206,7 +206,6 @@ if __name__ == "__main__":
     filename_pt_retrain = properties+run+'/retrain/metadata_post_training_'+label+'.json'
     try:
         df = read_folder(source+run+'/retrain')
-
     except FileNotFoundError:
         Fatal('Trouble loading files.')
 
@@ -251,6 +250,8 @@ if __name__ == "__main__":
     if features == [] or targets == []:
         Fatal('Error: Empty features or targets list.')
          
+    if df[targets].empty:
+        Fatal('No imager data measured')
     
     # Get neural network architecture details from the data
     logging.info('Training NN: Learning rate: %s Hidden layers: %s Hidden nodes: %s Batch size: %s', LEARNING_RATE, HIDDEN_LAYERS, HIDDEN_NODES, BATCH_SIZE)
@@ -307,17 +308,16 @@ if __name__ == "__main__":
     # Evaluate the model on the validation dataset
     score = []
     model.eval()
-    output_l = []
     with torch.no_grad():
         for dataset, target in valid_loader:
             output = model(dataset.to(device))
             pred = output.data.max(1, keepdim=True)[1]
             out = output.detach().cpu().numpy()
-            output_l.append(out)
             targets = target.detach().cpu().numpy()
             valid_r2 = pearsonr(targets.flatten(), out.flatten())[0] ** 2
             score.append(valid_r2)
     mean_valid_r2 = np.mean(score)
+    logging.info('Evaluation of finetuning with validation dataset: %.4f', mean_valid_r2)
     
     # Serialize data into file:
     stop_time = datetime.now()    
