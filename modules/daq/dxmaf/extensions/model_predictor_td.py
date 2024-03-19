@@ -108,11 +108,17 @@ class ModelPredictorTD(BufferedDataSubscriber):
         padded_val = {}
         a_dic={}
         output_array = []
+        length = len(self.filter_indices)
+
         for idex, iteration in enumerate(self.filter_indices):
-            
+            #print(idex, self.filter_indices)
             for k, v in dataset.items():
                 if 'BPM' in k and self.filter_indices != []:
-                    a_dic[k] = v[idex] 
+                    try:
+                        a_dic[k] = v[idex] 
+                    except:
+                        logging.info('Waiting for bunch number change......')
+                        continue
                 else:
                     a_dic[k] = v
 
@@ -136,6 +142,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
                         pydoocs.write(target, padded_val[target])
+                        print(target)
                         #logging.info('%s, %.3f', target, val[target][0])
                     else:
                         logging.info('%s, %.3f', target, val[target])
