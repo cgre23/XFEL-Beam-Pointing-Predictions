@@ -142,8 +142,8 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
                         pydoocs.write(target, padded_val[target])
-                        print(target)
-                        #logging.info('%s, %.3f', target, val[target][0])
+                        pydoocs.write(target.replace('.TD', ''), padded_val[target][0])
+                        #logging.info('%s, %.3f', target.replace('.TD', ''), padded_val[target][0])
                     else:
                         logging.info('%s, %.3f', target, val[target])
         #if self.record_data == True:
