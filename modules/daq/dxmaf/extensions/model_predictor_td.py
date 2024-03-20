@@ -123,13 +123,20 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     a_dic[k] = v
 
             df = pd.DataFrame(a_dic, index = [0])
-            df = df[self.features]
+            #df = df[self.features]
             normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
         #logging.info("To Model")
         # Test the model and get the prediction
         
             outp = self.model(torch.tensor(normdf.values.astype(numpy.float32))).detach().numpy()
             output_array.append(outp)
+            if idex == 0:
+                for idx, target in enumerate(self.targets):
+                    val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
+                    if doocs_write == 1:
+                	    pydoocs.write(target.replace('.TD', ''), val[target])
+                	    #logging.info('%s, %.3f', target, val[target])
+               
             #logging.info(output_array)
             if idex == len(self.filter_indices)-1:
                 for idx, target in enumerate(self.targets):
@@ -142,7 +149,8 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     #val[target] = (output_array[idx])
                     if doocs_write == 1:
                         pydoocs.write(target, padded_val[target])
-                        pydoocs.write(target.replace('.TD', ''), padded_val[target][0])
+                        
+                        #pydoocs.write(target.replace('.TD', ''), padded_val[target][0])
                         #logging.info('%s, %.3f', target.replace('.TD', ''), padded_val[target][0])
                     else:
                         logging.info('%s, %.3f', target, val[target])
