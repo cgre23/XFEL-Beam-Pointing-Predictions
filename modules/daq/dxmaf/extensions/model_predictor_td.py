@@ -58,6 +58,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
         self.channels = channels
         self.record_data = record_data
         self.SASE = SASE
+        self.x=0
         print('Number of channels:', len(channels))
         
         # Load data from JSON file 
@@ -123,8 +124,11 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     a_dic[k] = v
 
             df = pd.DataFrame(a_dic, index = [0])
-            #df = df[self.features]
-            normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
+            try:
+                df = df[self.features]
+                normdf = (df[self.features]-self.dfmin[self.features])/(self.dfmax[self.features]-self.dfmin[self.features])
+            except:
+                continue
         #logging.info("To Model")
         # Test the model and get the prediction
         
@@ -135,7 +139,7 @@ class ModelPredictorTD(BufferedDataSubscriber):
                     val[target] = (outp[:,idx]*(self.dfmax[target]-self.dfmin[target])+self.dfmin[target])
                     if doocs_write == 1:
                 	    pydoocs.write(target.replace('.TD', ''), val[target])
-                	    #logging.info('%s, %.3f', target, val[target])
+                	    logging.info('%s, %.3f', target.replace('.TD', ''), val[target])
                
             #logging.info(output_array)
             if idex == len(self.filter_indices)-1:
@@ -163,20 +167,20 @@ class ModelPredictorTD(BufferedDataSubscriber):
 
         :return:    List of indices for the relevant destination (SA1/SA2/SA3)
         """
+        
         pattern = pydoocs.read('XFEL.DIAG/TIMER.CENTRAL/MASTER/BUNCH_PATTERN')['data']
         data = pattern[::2] 
         data = data[:2708]
         data = [decode_destination(unpack_timing_word(d)) for d in data]
-        destination_indices = {
-                    # see https://confluence.desy.de/display/DOOCS/DOOCS+Lectures+and+Tutorials?preview=%2F185871363%2F211286337%2FTiming+System+%26+Bunch+Pattern.pdf
-                    # contains all bunches with destination T4D that are not affected by a soft kick in TL
-                    'SA1' : np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] != SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0],
-                    # contains all bunches with destination T5D.
-                    'SA2' : np.where([dest_[0] == Destination['xfel'].T5D for dest_ in data])[0],
-                    # contains all bunches with destination T4D that are affected by a soft kick in TL.
-                    'SA3' : np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] == SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0]
-        }
-        return list(destination_indices[self.SASE])
+        
+        if self.SASE == 'SA1':
+            indices = list(np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] != SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0])
+        elif self.SASE == 'SA2':
+            indices = list(np.where([dest_[0] == Destination['xfel'].T5D for dest_ in data])[0])
+        elif self.SASE == 'SA3':
+            indices = list(np.where([dest_[0] == Destination['xfel'].T4D and dest_[1] == SpecialFlags['xfel'].TLD_SOFT_KICK for dest_ in data])[0])
+        
+        return indices
 
     def process(self, channel: str, data: int, sequence_id: int, timestamp: float) -> None:
         """
@@ -192,6 +196,9 @@ class ModelPredictorTD(BufferedDataSubscriber):
         :param timestamp:   Timestamp of the data sample.
         :return:            None
         """
+        
+
+        
         if 'XGM/XGM' in channel:
                 if len(data) > 0:
                         data = data[0][1]
@@ -201,8 +208,11 @@ class ModelPredictorTD(BufferedDataSubscriber):
         # Filter by BUNCHPATTERN destination                
         if 'BPM' in channel:
             channel = channel.replace("/X.TD", "/X."+self.SASE).replace("/Y.TD", "/Y."+self.SASE)
-            self.filter_indices = self.bunch_pattern_filter()
+            if self.x == 0 or self.x%100:
+                self.filter_indices = self.bunch_pattern_filter()
             data = numpy.take(data[:,1], self.filter_indices)
+            
+        self.x=self.x+1
         
         highest_sequence_id = max([*self.buffer.keys(), sequence_id])
         if sequence_id < (highest_sequence_id - self.max_buffer_size):
