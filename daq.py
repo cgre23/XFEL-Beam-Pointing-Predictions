@@ -105,16 +105,19 @@ class DAQApp(QWidget):
                 stop_log_html = '<html> <style> p { margin:0px; } span.d { font-size:80%; color:#555555; } span.e { font-weight:bold; color:#FF0000; } span.w { color:#CCAA00; } </style> <body style="font:normal 10px Arial,monospaced; margin:0; padding:0;"> Not able to stop the sequence.  <span class="d">(datetime)</span></body></html>'.replace('datetime', datetime.now().isoformat(' ', 'seconds'))
                 self.ui.textBrowser.append(stop_log_html)
 
-    def start_dxmaf(self):
+    def start_dxmaf(self, undulators):
         """ Start DXMAF measurement """
-        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"])
+        if undulators == '1':
+            self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1.sh"])
+        elif undulators == '2':
+            self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_2.sh"])
 
 
     def start_sequence(self):
         """ Start DAQ measurement """
         x=1
         if x == 1:
-            self.set_config('SA1') # make sure DXMAF config file has the correct measurement duration
+            
             pydoocs.write(self.sa1_sequence_prefix+'/RUN.ONCE', 1)
             self.logstring = []
             start_log = datetime.now().isoformat(' ', 'seconds')+': Started Taskomat sequence.\n'
@@ -122,6 +125,10 @@ class DAQApp(QWidget):
             self.logstring.append(start_log)
             self.ui.textBrowser.append(start_log_html)
             undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
+            if undulators == '1':
+                self.set_config('SA1') # make sure DXMAF config file has the correct measurement duration
+            elif undulators == '2':
+                self.set_config('SA2')
             dxmaf_flag = True
             while pydoocs.read(self.sa1_sequence_prefix+'/RUNNING')['data'] ==1: #############
                 # Start running dxmaf only when Step 7 is running and only call the start function once.
@@ -130,9 +137,12 @@ class DAQApp(QWidget):
                     	dxmaf_flag = False
                     	now = datetime.now()
                     	dt_string = now.strftime("%Y-%m-%d")
-                    	path = self.data_path + 'SA1/' + dt_string
+                    	if undulators == '1':
+                    	    path = self.data_path + 'SA1/' + dt_string
+                    	elif undulators == '2':
+                    	    path = self.data_path + 'SA2/' + dt_string
                     	self.makedirs(path)
-                    	self.start_dxmaf()
+                    	self.start_dxmaf(undulators)
 
 
                 log = pydoocs.read(self.sa1_sequence_prefix+'/LOG.LAST')['data']
@@ -297,7 +307,8 @@ class DAQApp(QWidget):
 
     def write_doocs_data(self):
         """ Write the measurement settings to DOOCS """
-        self.set_config('SA1')
+        #self.set_config('SA1')
+        #self.set_config('SA2')
         undulators =  ''.join(filter(str.isdigit, self.ui.SASEoptions.currentText()) )
         und_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/DAQ/MEASURED_UNDULATORS', undulators)
         k_range_sa1 = self.ui.sa1_k.value()/10000
