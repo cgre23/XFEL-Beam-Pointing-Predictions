@@ -460,18 +460,21 @@ class DAQApp(QWidget):
         t.start()
 
     def retrain_model(self):
-        self.config_file = self.config_path + 'datalog_writer_SA1.conf'
-        with open(self.config_file, 'r') as file:
-            cur_yaml = yaml.safe_load(file)
-            cur_yaml.update({'duration': str(timedelta(seconds=90)+timedelta(seconds=30))})
-        with open(self.config_file,'w') as yamlfile:
-            yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
-        now = datetime.now()
-        dt_string = self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/CURRENT_MODEL_DATE', date).replace('_', '-')
+        self.config_file = self.config_path + 'datalog_writer_SA1_retrain.conf'
+        dt_string = self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/CURRENT_MODEL_DATE').replace('_', '-')
         path = self.data_path + 'SA1/'+dt_string+'/retrain'
         self.makedirs(path)
+        with open(self.config_file, 'r') as file:
+            cur_yaml = yaml.safe_load(file)
+            cur_yaml.update({'duration': str(timedelta(seconds=120)+timedelta(seconds=30))})
+            cur_yaml['application'][0]['args'].update({'output_file': 'runs/SA1/'+dt_string+'/retrain/run_%Y-%m-%d_%H%M%S.parquet.gzip'})
+        with open(self.config_file,'w') as yamlfile:
+            yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
+
+        
+        
         self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1_retrain.sh"])
-        time.sleep(120)
+        time.sleep(10)
         #self.train_data_path = path
         #self.train_model()
         self.ui.retrainmodel_button.setEnabled(True)
