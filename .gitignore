@@ -1,1 +1,6 @@
 modules/venv/*
+.DS_Store
+modules/.DS_Store
+modules/daq/.DS_Store
+modules/daq/runs/.DS_Store
+modules/daq/runs/SA1/.DS_Store
