@@ -115,7 +115,7 @@ class ImageProcessor(DataSubscriber):
                 skewness_x = skew(cols_zero)
                 kurtosis_x = kurtosis(cols_zero, fisher=False)
                 max_intensity = np.max(cropped_a)
-                if max_intensity > 4000:
+                if max_intensity > 5000:
                     logging.info('Beam intensity saturated....add filter/attenutator.')
                 rmse_x = np.sqrt(np.sum(np.square(cols_zero - col_gaussian[::10])) / len(cols_zero))
                 rmse_y = np.sqrt(np.sum(np.square(rows_zero - row_gaussian[::10])) / len(rows_zero))
@@ -146,8 +146,8 @@ class ImageProcessor(DataSubscriber):
         pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/KURTOSIS_Y_MEASUREMENT', kurtosis_y)
         pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_X', fit_error_x)
         pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_Y', fit_error_y)
-        pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_X_SQUARED', rmse_x)
-        pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_Y_SQUARED', rmse_y)
+        #pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_X_SQUARED', rmse_x)
+        #pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/FIT_ERROR_Y_SQUARED', rmse_y)
         pydoocs.write(f'XFEL.UTIL/DYNPROP/BEAM_PREDICT.{self.SASE}/MAX_INTENSITY_ON_SCREEN', max_intensity)
 
     def close(self) -> None:

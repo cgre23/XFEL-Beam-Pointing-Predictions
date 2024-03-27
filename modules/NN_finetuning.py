@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     # Some data preprocessing steps...
     # Remove columns with a zero standard deviation. Otherwise an issue could be caused with normalization
-    df=df.loc[:, df.std() > 0]
+    #df=df.loc[:, df.std() > 0]
 
     inputs_outputs = data['inputs_outputs']
     df = df[inputs_outputs]

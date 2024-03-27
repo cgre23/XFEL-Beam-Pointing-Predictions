@@ -438,6 +438,15 @@ class DAQApp(QWidget):
                 update_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA3/UPDATE_MODEL_FLAG', 1)
             else:
                 self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
+        elif 'SA1' in self.launch_model_path and 'retrain' in self.launch_model_path.split('/')[-1] :
+            date = self.launch_model_path.split('/')[-2].replace('-', '_')
+            self.ui.model_log.setText('Model update after retraining for SA1 data from ' + date + ' requested.')
+            if int(self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG')) == 0:
+                self.set_config_predictor('SA1', date)
+                date_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/CURRENT_MODEL_DATE', date)
+                start_flag = self.simple_doocs_write('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/UPDATE_MODEL_FLAG', 1)
+            else:
+                self.ui.model_log.setText('Error writing data to DOOCS. Model is already being updated.')
         else:
             self.ui.model_log.setText('Not a valid model location')
 
@@ -460,20 +469,20 @@ class DAQApp(QWidget):
         t.start()
 
     def retrain_model(self):
-        self.config_file = self.config_path + 'datalog_writer_SA1_retrain.conf'
-        dt_string = self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA1/CURRENT_MODEL_DATE').replace('_', '-')
-        path = self.data_path + 'SA1/'+dt_string+'/retrain'
+        self.config_file = self.config_path + 'datalog_writer_SA2_retrain.conf'
+        dt_string = self.simple_doocs_read('XFEL.UTIL/DYNPROP/BEAM_PREDICT.SA2/CURRENT_MODEL_DATE').replace('_', '-')
+        path = self.data_path + 'SA2/'+dt_string+'/retrain'
         self.makedirs(path)
         with open(self.config_file, 'r') as file:
             cur_yaml = yaml.safe_load(file)
-            cur_yaml.update({'duration': str(timedelta(seconds=120)+timedelta(seconds=30))})
-            cur_yaml['application'][0]['args'].update({'output_file': 'runs/SA1/'+dt_string+'/retrain/run_%Y-%m-%d_%H%M%S.parquet.gzip'})
+            cur_yaml.update({'duration': str(timedelta(seconds=300)+timedelta(seconds=30))})
+            cur_yaml['application'][0]['args'].update({'output_file': 'runs/SA2/'+dt_string+'/retrain/run_%Y-%m-%d_%H%M%S.parquet.gzip'})
         with open(self.config_file,'w') as yamlfile:
             yaml.safe_dump(cur_yaml, yamlfile) # Also note the safe_dump
 
         
         
-        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_1_retrain.sh"])
+        self.proc = subprocess.Popen(["/bin/sh",  "./modules/daq/launch_writer_2_retrain.sh"])
         time.sleep(10)
         #self.train_data_path = path
         #self.train_model()

@@ -217,7 +217,7 @@ if __name__ == "__main__":
     filename_pt = properties+run+'/metadata_post_training_'+label+'.json'
     # Some data preprocessing steps...
     # Remove columns with a zero standard deviation. Otherwise an issue could be caused with normalization
-    df=df.loc[:, df.std() > 0]
+    #df=df.loc[:, df.std() > 0]
 
     # Define the features and targets from the channel list, pre-normalization
     features_pre = list(set(channel_list['inputs']).intersection(df.columns.tolist()))
