@@ -1,6 +1,6 @@
  #!/bin/sh
 
-SASE='SA1'
+SASE='SA2'
 
 
 cd /home/xfeloper/user/chgrech/xfel-daq-ui/modules
